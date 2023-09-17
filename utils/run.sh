@@ -57,8 +57,8 @@ get_next_unused_port() {
 while [ "$*" ]; do
     param=$1; shift; OPTARG=$1
     case $param in
-    --listen)       WEB_PORT="${OPTARG}"; shift         ;;
-    --server)       REMOTE_HOST="${OPTARG}"; shift      ;;
+    --web-port)     WEB_PORT="${OPTARG}"; shift         ;;
+    --remote-host)  REMOTE_HOST="${OPTARG}"; shift      ;;
     --vnc-port)     VNC_PORT="${OPTARG}"; shift         ;;
     --audio-port)   AUDIO_PORT="${OPTARG}"; shift       ;;
     -h|--help) usage                              ;;
