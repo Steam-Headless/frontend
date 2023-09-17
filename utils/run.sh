@@ -4,7 +4,7 @@
 # File Created: Sunday, 17th September 2023 5:10:38 pm
 # Author: Josh.5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Sunday, 17th September 2023 11:39:24 pm
+# Last Modified: Monday, 18th September 2023 12:18:08 am
 # Modified By: Josh.5 (jsunnex@gmail.com)
 ###
 
@@ -124,6 +124,19 @@ cat << EOF > "${WEB_ROOT:?}/web/config.json"
     "REMOTE_HOST": "${REMOTE_HOST:?}",
     "PORT_AUDIO_WEBSOCKET": "${PORT_AUDIO_WEBSOCKET:?}"
 }
+EOF
+
+# Create redirect
+cat << EOF > "${WEB_ROOT:?}/index.html"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="refresh" content="0;url=./web/">
+</head>
+<body>
+    <p>If you are not redirected, <a href="./web/">click here</a>.</p>
+</body>
+</html>
 EOF
 
 # Run main server
