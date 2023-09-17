@@ -4,7 +4,7 @@
 # File Created: Sunday, 17th September 2023 5:10:38 pm
 # Author: Josh.5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Sunday, 17th September 2023 7:55:05 pm
+# Last Modified: Sunday, 17th September 2023 11:39:24 pm
 # Modified By: Josh.5 (jsunnex@gmail.com)
 ###
 
@@ -139,7 +139,7 @@ fi
 
 # Run audio proxy
 echo "Starting audio socket proxy on port ${WEB_PORT:?}"
-${WEBSOCKIFY} ${PORT_AUDIO_WEBSOCKET:?} ${REMOTE_HOST:?}:${AUDIO_PORT:?}
+${WEBSOCKIFY} ${PORT_AUDIO_WEBSOCKET:?} ${REMOTE_HOST:?}:${AUDIO_PORT:?} &
 audio_proxy_pid="$!"
 sleep 1
 if [ -z "$audio_proxy_pid" ] || ! ps -eo pid= | grep -w "$audio_proxy_pid" > /dev/null; then
@@ -149,7 +149,7 @@ if [ -z "$audio_proxy_pid" ] || ! ps -eo pid= | grep -w "$audio_proxy_pid" > /de
 fi
 
 echo -e "\n\nNavigate to this URL:\n"
-echo -e "    http://$(hostname):${WEB_PORT:?}/vnc.html?host=$(hostname)&port=${WEB_PORT:?}\n"
+echo -e "    http://$(hostname):${WEB_PORT:?}/web/vnc.html?host=$(hostname)&port=${WEB_PORT:?}\n"
 
 echo -e "Press Ctrl-C to exit\n\n"
 
