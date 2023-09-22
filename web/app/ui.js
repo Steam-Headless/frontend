@@ -6,7 +6,7 @@
  * See README.md for usage and integration instructions.
  */
 
-import jsonConfig from '../config.json' assert {type: 'json'}
+import jsonConfig from "../config.js";
 
 import * as Log from '../../noVNC/core/util/logging.js';
 import _, { l10n } from '../../noVNC/app/localization.js';

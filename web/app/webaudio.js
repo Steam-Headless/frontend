@@ -3,10 +3,14 @@
  * File Created: Sunday, 17th September 2023 6:09:10 pm
  * Author: Josh.5 (jsunnex@gmail.com)
  * -----
- * Last Modified: Sunday, 17th September 2023 7:54:33 pm
+ * Last Modified: Monday, 18th September 2023 12:38:00 am
  * Modified By: Josh.5 (jsunnex@gmail.com)
  */
 
+// Credits for this audio class:
+//   - https://github.com/novnc/noVNC/issues/302
+//   - https://github.com/vexingcodes/dwarf-fortress-docker
+//   - https://github.com/calebj/noVNC
 
 export default class WebAudio {
     constructor(url) {

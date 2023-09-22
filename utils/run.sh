@@ -4,7 +4,7 @@
 # File Created: Sunday, 17th September 2023 5:10:38 pm
 # Author: Josh.5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Monday, 18th September 2023 12:18:08 am
+# Last Modified: Friday, 22nd September 2023 3:13:18 pm
 # Modified By: Josh.5 (jsunnex@gmail.com)
 ###
 
@@ -19,8 +19,6 @@ AUDIO_PORT="32039"      # (pulseaudio stream port)
 main_proxy_pid=""
 audio_proxy_pid=""
 
-# TODO: Remove this override after initial development
-REMOTE_HOST="192.168.1.200"
 
 die() {
     echo "$*"
@@ -119,11 +117,11 @@ PORT_AUDIO_WEBSOCKET=$(get_next_unused_port 32040)
 echo "Configure audio websocket port '${PORT_AUDIO_WEBSOCKET:?}'"
 
 # Export config
-cat << EOF > "${WEB_ROOT:?}/web/config.json"
-{
-    "REMOTE_HOST": "${REMOTE_HOST:?}",
-    "PORT_AUDIO_WEBSOCKET": "${PORT_AUDIO_WEBSOCKET:?}"
-}
+cat << EOF > "${WEB_ROOT:?}/web/config.js"
+export default {
+    REMOTE_HOST: "${REMOTE_HOST:?}",
+    PORT_AUDIO_WEBSOCKET: "${PORT_AUDIO_WEBSOCKET:?}"
+};
 EOF
 
 # Create redirect

@@ -1,6 +1,7 @@
 *.pyc
 *.o
 /index.html
+/web/config.js
 /web/config.json
 utils/websockify
 /tmp
