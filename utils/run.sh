@@ -12,10 +12,12 @@ NAME="$(basename $0)"
 REAL_NAME="$(readlink -f $0)"
 HERE="$(cd "$(dirname "$REAL_NAME")" && pwd)"
 WEB_PORT="8083"
+SHUI_PORT="8082"        # (SHUI uvicorn port)
 WEB_ROOT=${HERE}/../
 REMOTE_HOST="localhost"
 VNC_PORT="32036"        # (VNC service port)
 AUDIO_PORT="32039"      # (pulseaudio stream port)
+shui_pid=""
 main_proxy_pid=""
 audio_proxy_pid=""
 
@@ -38,6 +40,11 @@ cleanup() {
     if [ -n "${audio_proxy_pid}" ]; then
         echo "Terminating audio WebSockets proxy (${audio_proxy_pid})"
         kill ${audio_proxy_pid}
+    fi
+    # Stop SHUI
+    if [ -n "${shui_pid}" ]; then
+        echo "Terminating fastHTML uvicorn (${shui_pid})"
+        kill ${shui_pid}
     fi
 }
 
@@ -148,6 +155,18 @@ if [ -z "$main_proxy_pid" ] || ! ps -eo pid= | grep -w "$main_proxy_pid" > /dev/
     exit 1
 fi
 
+# Run FastHTML server
+echo "Starting SHUI fastHTML page on port ${SHUI_PORT:?}"
+PYTHON_BINARY=$(which python3 2>/dev/null)
+${PYTHON_BINARY:-/usr/bin/python3} ${WEB_ROOT:?}/shui/main.py & # FIXME
+shui_pid="$!"
+sleep 1
+if [ -z "$shui_pid" ] || ! ps -eo pid= | grep -w "$shui_pid" > /dev/null; then
+    shui_pid=
+    echo "Failed to start FastHTML uvicorn"
+    exit 1
+fi
+
 # Run audio proxy
 echo "Starting audio socket proxy on port ${WEB_PORT:?}"
 ${WEBSOCKIFY} ${PORT_AUDIO_WEBSOCKET:?} ${REMOTE_HOST:?}:${AUDIO_PORT:?} &
@@ -164,5 +183,6 @@ echo -e "    http://$(hostname):${WEB_PORT:?}/web/vnc.html?host=$(hostname)&port
 
 echo -e "Press Ctrl-C to exit\n\n"
 
+wait ${shui_pid}
 wait ${main_proxy_pid}
 wait ${audio_proxy_pid}
