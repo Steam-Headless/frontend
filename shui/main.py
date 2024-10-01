@@ -5,11 +5,12 @@ cdn = 'https://cdn.jsdelivr.net/npm/bootstrap'
 bootstrap_links = [
     Link(href=cdn+"@5.3.3/dist/css/bootstrap.min.css", rel="stylesheet"),
     Script(src=cdn+"@5.3.3/dist/js/bootstrap.bundle.min.js"),
-    Link(href=cdn+"-icons@1.11.3/font/bootstrap-icons.min.css", rel="stylesheet")
+    Link(href=cdn+"-icons@1.11.3/font/bootstrap-icons.min.css", rel="stylesheet"),
+    Link(href=cdn+"about:blank", rel="shortcut icon") # Suppress favicon warning
 ]
 
 # Attempt to avoid needing to use a .css file. Insert overrides here
-css = Style('')
+css = Style()
 
 # Define the sidebar items
 def SidebarItem(text, hx_get, hx_target, **kwargs):
@@ -46,7 +47,7 @@ app,rt = fast_app(
 )
 
 # The Log Page content is defined here
-# Todo seperate the page into a different file
+# Todo Check if the log folder exists!!
 def logs_content():
     logs_dir = "/home/default/.cache/log"
     log_files = [f for f in os.listdir(logs_dir) if os.path.isfile(os.path.join(logs_dir, f)) and f.endswith('.log')]
