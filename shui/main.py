@@ -75,7 +75,7 @@ def get():
             Main(
                 A(I(cls='bi bi-list bi-lg py-2 p-1'),
                   href='#', data_bs_target='#sidebar', data_bs_toggle='collapse', aria_expanded='false', aria_controls='sidebar',
-                  cls='border rounded-3 p-1 text-decoration-none bg-dark text-white bg-opacity-25 position-fixed'),
+                  cls='border rounded-3 p-1 text-decoration-none bg-dark text-white bg-opacity-25 position-fixed my-1'),
                 Div(
                   Div(
                     Div(
@@ -84,7 +84,7 @@ def get():
                     id="current-menu-content", style="width: 100%; height: 100vh;"),
                     cls='col-12'
                 ), cls='row'),
-                cls='col'),
+                cls='col gx-0'),
             cls='row flex-nowrap'),
         cls='container-fluid')
 
