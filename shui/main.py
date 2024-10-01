@@ -37,7 +37,12 @@ sidebar_items = ('WebUI', 'Sunshine WebUI', 'Logs')
 # Define the main fastHTML app
 app,rt = fast_app(
     pico=False, # Avoid conflicts between bootstrap styling and the built in picolink
-    hdrs=(bootstrap_links, css)
+    hdrs=(
+        Meta(http_equiv='referrer', content='no-referrer'),
+        Meta(http_equiv='Content-Security-Policy', content="frame-src 'self' *"),
+        Meta(http_equiv='Access-Control-Allow-Origin', content="*"),
+        bootstrap_links, 
+        css)
 )
 
 # The Log Page content is defined here
@@ -53,7 +58,7 @@ def logs_content():
         file_path = os.path.join(logs_dir, log_file)
         with open(file_path, 'r') as file:
             lines = file.readlines()[-50:]
-            content = "<br>".join(lines)
+            content = "".join(lines)
             divs.append(Details(Summary(log_file), Pre(P(content)), cls="card mb-2"))
     
     return Div(*divs, cls='container-fluid py-5') if divs else Div("No log files found.")
@@ -68,18 +73,18 @@ def get():
                 Sidebar(sidebar_items, hx_get='menucontent', hx_target='#current-menu-content'),
                 cls='col-auto px-0'),
             Main(
-                A(I(cls='bi bi-list bi-lg py-2 p-1'), 'Menu',
+                A(I(cls='bi bi-list bi-lg py-2 p-1'),
                   href='#', data_bs_target='#sidebar', data_bs_toggle='collapse', aria_expanded='false', aria_controls='sidebar',
-                  cls='border rounded-3 p-1 text-decoration-none'),
+                  cls='border rounded-3 p-1 text-decoration-none bg-dark text-white bg-opacity-25 position-fixed'),
                 Div(
                   Div(
                     Div(
-                    H1("Welcome to Steam Headless!"),
+                    H1("Welcome to Steam Headless!", cls="py-5"),
                     P("Select an Item to get started"),
                     id="current-menu-content", style="width: 100%; height: 100vh;"),
                     cls='col-12'
                 ), cls='row'),
-                cls='col ps-md-2 pt-2'),
+                cls='col'),
             cls='row flex-nowrap'),
         cls='container-fluid')
 
@@ -87,9 +92,12 @@ def get():
 @rt('/menucontent')
 def menucontent(menu: str):
 
+    current_ip="192.168.100.131" # FIXME cors x-headers something blocking iframe access from localhost?
+    # current_ip="localhost"
+
     switch_cases = {
-        'WebUI': f'<iframe src="http://localhost:8083" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
-        'Sunshine WebUI': f'<iframe src="https://localhost:47990" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
+        'WebUI': f'<iframe src="http://{current_ip}:8083" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
+        'Sunshine WebUI': f'<iframe src="https://{current_ip}:47990" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
         'Logs': logs_content()
     }
 
