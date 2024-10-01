@@ -84,8 +84,8 @@ def get():
                     P("Select an Item to get started"),
                     id="current-menu-content", style="width: 100%; height: 100vh;"),
                     cls='col-12'
-                ), cls='row'),
-                cls='col gx-0'),
+                ), cls='row gx-0'),
+                cls='col gx-0 overflow-hidden'),
             cls='row flex-nowrap'),
         cls='container-fluid')
 
