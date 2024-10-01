@@ -73,7 +73,7 @@ def get():
                 Sidebar(sidebar_items, hx_get='menucontent', hx_target='#current-menu-content'),
                 cls='col-auto px-0'),
             Main(
-                A(I(cls='bi bi-list bi-lg py-2 p-1'),
+                A(I(cls='bi bi-controller bi-lg py-2 p-1'),
                   href='#', data_bs_target='#sidebar', data_bs_toggle='collapse', aria_expanded='false', aria_controls='sidebar',
                   cls='border rounded-3 p-1 text-decoration-none bg-dark text-white bg-opacity-25 position-fixed my-1'),
                 Div(
