@@ -13,19 +13,19 @@ bootstrap_links = [
 css = Style()
 
 # Define the sidebar items
-def SidebarItem(text, hx_get, hx_target, **kwargs):
+def SidebarItem(text, hx_get, hx_vals, hx_target, **kwargs):
     return Div(
         I(cls=f'bi bi-{text}'),
         Span(text),
-        hx_get=hx_get, hx_target=hx_target,
+        hx_get=hx_get, hx_vals=hx_vals, hx_target=hx_target,
         data_bs_parent='#sidebar', role='button',
         cls='list-group-item border-end-0 d-inline-block text-truncate',
         **kwargs)
 
 # Define the sidebar
-def Sidebar(sidebar_items, hx_get, hx_target):
+def Sidebar(sidebar_items, hx_get, hx_vals, hx_target):
     return Div(
-        Div(*(SidebarItem(o, f"{hx_get}?menu={o}", hx_target) for o in sidebar_items),
+        Div(*(SidebarItem(o, f"{hx_get}?menu={o}", hx_vals, hx_target) for o in sidebar_items),
             id='sidebar-nav',
             cls='list-group border-0 rounded-0 text-sm-start min-vh-100'
         ),
@@ -71,7 +71,7 @@ def get():
     return Div(
         Div(
             Div(
-                Sidebar(sidebar_items, hx_get='menucontent', hx_target='#current-menu-content'),
+                Sidebar(sidebar_items, hx_get='menucontent', hx_vals='js:{"myIP": window.location.hostname}', hx_target='#current-menu-content'),
                 cls='col-auto px-0'),
             Main(
                 A(I(cls='bi bi-controller bi-lg py-2 p-1'),
@@ -91,14 +91,11 @@ def get():
 
 # The route for the menu content, which is dynamically loaded via htmx into current-menu-content
 @rt('/menucontent')
-def menucontent(menu: str):
-
-    current_ip="192.168.100.131" # FIXME cors x-headers something blocking iframe access from localhost?
-    # current_ip="localhost"
+def menucontent(menu: str, myIP: str):
 
     switch_cases = {
-        'WebUI': f'<iframe src="http://{current_ip}:8083" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
-        'Sunshine WebUI': f'<iframe src="https://{current_ip}:47990" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
+        'WebUI': f'<iframe id="desktopUI" src="http://{myIP}:8083" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
+        'Sunshine WebUI': f'<iframe id="sunshineUI" src="https://{myIP}:47990" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
         'Logs': logs_content()
     }
 
