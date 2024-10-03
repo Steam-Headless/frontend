@@ -1,4 +1,5 @@
 from fasthtml.common import *
+#import requests
 
 # Define the bootstrap version, style, and icon packs
 cdn = 'https://cdn.jsdelivr.net/npm/bootstrap'
@@ -11,6 +12,9 @@ bootstrap_links = [
 
 # Attempt to avoid needing to use a .css file. Insert overrides here
 css = Style()
+
+# Page Element Contents and Structure
+#
 
 # Define the sidebar items
 def SidebarItem(text, hx_get, hx_vals, hx_target, **kwargs):
@@ -33,8 +37,44 @@ def Sidebar(sidebar_items, hx_get, hx_vals, hx_target):
         cls='collapse collapse-horizontal show border-end')
 
 # Add remove buttons to the sidebar
-sidebar_items = ('WebUI', 'Sunshine WebUI', 'Logs')
+sidebar_items = ('NoVNC', 'Sunshine', 'Logs', 'FAQ')
 
+# The Log Page content is defined here
+def logs_content():
+    logs_dir = "/home/default/.cache/log"
+    if os.path.isdir(logs_dir):
+        # List all log files in the logs directory
+        log_files = [f for f in os.listdir(logs_dir) if os.path.isfile(os.path.join(logs_dir, f)) and f.endswith('.log')]
+        sorted_log_files = sorted(log_files)
+        # Read the last 50 lines of each log file
+        divs = []
+        for log_file in sorted_log_files:
+            file_path = os.path.join(logs_dir, log_file)
+            with open(file_path, 'r') as file:
+                lines = file.readlines()[-50:]
+                content = "".join(lines)
+                divs.append(Details(Summary(log_file), Pre(P(content)), cls="card mb-2"))
+        # Return a container with all the logs using bootstrap classes
+        return Div(*divs, cls='container-fluid py-5') if divs else Div("No log files found.")
+    else:
+        return Div("No log Directory Created.")
+
+# The Faq Page content is defined here
+# TODO add a proper FAQ page with markdown, styling, and links to the documentation
+# def faq_content():
+#     url = "https://raw.githubusercontent.com/Steam-Headless/docker-steam-headless/refs/heads/master/docs/troubleshooting.md"
+#     response = requests.get(url)
+#     if response.status_code == 200:
+#         _content = response.text
+#     else:
+#         _content = "Failed to load content."
+
+#     return Div(
+#         H1("FAQ", cls="py-5"),
+#         Pre(_content)
+#     )
+
+# Invokation of the fast_app function
 # Define the main fastHTML app
 app,rt = fast_app(
     pico=False, # Avoid conflicts between bootstrap styling and the built in picolink
@@ -46,26 +86,8 @@ app,rt = fast_app(
         css)
 )
 
-# The Log Page content is defined here
-# Todo Check if the log folder exists!!
-def logs_content():
-    logs_dir = "/home/default/.cache/log"
-    log_files = [f for f in os.listdir(logs_dir) if os.path.isfile(os.path.join(logs_dir, f)) and f.endswith('.log')]
-    
-    sorted_log_files = sorted(log_files)
-
-    divs = []
-    for log_file in sorted_log_files:
-        file_path = os.path.join(logs_dir, log_file)
-        with open(file_path, 'r') as file:
-            lines = file.readlines()[-50:]
-            content = "".join(lines)
-            divs.append(Details(Summary(log_file), Pre(P(content)), cls="card mb-2"))
-    
-    return Div(*divs, cls='container-fluid py-5') if divs else Div("No log files found.")
-
 # Define the routes for the application
-# The Main route and layout when visiting the UI
+# The Main route and responses to GET/POST requests
 @rt('/')
 def get():
     return Div(
@@ -89,17 +111,19 @@ def get():
             cls='row flex-nowrap'),
         cls='container-fluid')
 
-# The route for the menu content, which is dynamically loaded via htmx into current-menu-content
+# The route for the menu content, which is dynamically loaded via htmx into #current-menu-content
 @rt('/menucontent')
 def menucontent(menu: str, myIP: str):
 
     switch_cases = {
-        'WebUI': f'<iframe id="desktopUI" src="http://{myIP}:8083" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
-        'Sunshine WebUI': f'<iframe id="sunshineUI" src="https://{myIP}:47990" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
-        'Logs': logs_content()
+        'NoVNC': f'<iframe id="desktopUI" src="http://{myIP}:8083" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
+        'Sunshine': f'<iframe id="sunshineUI" src="https://{myIP}:47990" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
+        'Logs': logs_content(),
+        #'FAQ': faq_content()
     }
 
     return switch_cases.get(menu, Div("No content available"))
 
+# Run the app
 # Serve the application at port 8082
 serve(port=8082)
