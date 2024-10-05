@@ -1,5 +1,5 @@
 from fasthtml.common import *
-#import requests
+import requests
 
 # Define the bootstrap version, style, and icon packs
 cdn = 'https://cdn.jsdelivr.net/npm/bootstrap'
@@ -7,6 +7,8 @@ bootstrap_links = [
     Link(href=cdn+"@5.3.3/dist/css/bootstrap.min.css", rel="stylesheet"),
     Script(src=cdn+"@5.3.3/dist/js/bootstrap.bundle.min.js"),
     Link(href=cdn+"-icons@1.11.3/font/bootstrap-icons.min.css", rel="stylesheet"),
+    # Link(rel='stylesheet', href='node_modules/@xterm/xterm/css/xterm.css'), # Include xterm styles
+    # Script(src='node_modules/@xterm/xterm/lib/xterm.js'), # Include xterm styles
     Link(href=cdn+"about:blank", rel="shortcut icon") # Suppress favicon warning
 ]
 
@@ -37,7 +39,7 @@ def Sidebar(sidebar_items, hx_get, hx_vals, hx_target):
         cls='collapse collapse-horizontal show border-end')
 
 # Add remove buttons to the sidebar
-sidebar_items = ('NoVNC', 'Sunshine', 'Logs', 'FAQ')
+sidebar_items = ('NoVNC', 'Sunshine', 'Shell', 'Logs', 'FAQ')
 
 # The Log Page content is defined here
 def logs_content():
@@ -61,17 +63,24 @@ def logs_content():
 
 # The Faq Page content is defined here
 # TODO add a proper FAQ page with markdown, styling, and links to the documentation
-# def faq_content():
-#     url = "https://raw.githubusercontent.com/Steam-Headless/docker-steam-headless/refs/heads/master/docs/troubleshooting.md"
-#     response = requests.get(url)
-#     if response.status_code == 200:
-#         _content = response.text
-#     else:
-#         _content = "Failed to load content."
+def faq_content():
+    url = "https://raw.githubusercontent.com/Steam-Headless/docker-steam-headless/refs/heads/master/docs/troubleshooting.md"
+    response = requests.get(url)
+    if response.status_code == 200:
+        _content = response.text
+    else:
+        _content = "Failed to load content."
 
+    return Div(
+        H1("FAQ", cls="py-5"),
+        Pre(_content),
+        cls="container"
+    )
+
+# def terminal_content():
 #     return Div(
-#         H1("FAQ", cls="py-5"),
-#         Pre(_content)
+#         Div(id='terminal'),
+#         Script("var term = new Terminal();\r\n        term.open(document.getElementById('terminal'));\r\n        term.write('Hello from \\x1B[1;3;31mxterm.js\\x1B[0m $ ')")
 #     )
 
 # Invokation of the fast_app function
@@ -79,9 +88,9 @@ def logs_content():
 app,rt = fast_app(
     pico=False, # Avoid conflicts between bootstrap styling and the built in picolink
     hdrs=(
-        Meta(http_equiv='referrer', content='no-referrer'),
-        Meta(http_equiv='Content-Security-Policy', content="frame-src 'self' *"),
-        Meta(http_equiv='Access-Control-Allow-Origin', content="*"),
+        #Meta(http_equiv='referrer', content='no-referrer'),
+        #Meta(http_equiv='Content-Security-Policy', content="frame-src 'self' *"),
+        #Meta(http_equiv='Access-Control-Allow-Origin', content="*"),
         bootstrap_links, 
         css)
 )
@@ -98,13 +107,15 @@ def get():
             Main(
                 A(I(cls='bi bi-controller bi-lg py-2 p-1'),
                   href='#', data_bs_target='#sidebar', data_bs_toggle='collapse', aria_expanded='false', aria_controls='sidebar',
-                  cls='border rounded-3 p-1 text-decoration-none bg-dark text-white bg-opacity-25 position-fixed my-1'),
+                  cls='border rounded-3 p-1 text-decoration-none bg-dark text-white bg-opacity-25 position-fixed my-2 mx-2'),
                 Div(
                   Div(
                     Div(
-                    H1("Welcome to Steam Headless!", cls="py-5"),
-                    P("Select an Item to get started"),
+                    # TODO Make a nice landing page with a nice logo and some info about the project
+                    H1("Welcome to Steam Headless!", cls="py-5 mx-2"),
+                    P("Select an Item to get started", cls="mx-2"),
                     id="current-menu-content", style="width: 100%; height: 100vh;"),
+                    # NOTE End of landing page section
                     cls='col-12'
                 ), cls='row gx-0'),
                 cls='col gx-0 overflow-hidden'),
@@ -116,13 +127,14 @@ def get():
 def menucontent(menu: str, myIP: str):
 
     switch_cases = {
-        'NoVNC': f'<iframe id="desktopUI" src="http://{myIP}:8083" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
+        'NoVNC': f'<iframe id="desktopUI" src="http://{myIP}:8083/web/index.html?autoconnect=true" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
         'Sunshine': f'<iframe id="sunshineUI" src="https://{myIP}:47990" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
+        #'Shell': terminal_content(),
         'Logs': logs_content(),
-        #'FAQ': faq_content()
+        'FAQ': faq_content()
     }
 
-    return switch_cases.get(menu, Div("No content available"))
+    return switch_cases.get(menu, Div("No content available", cls='py-5'))
 
 # Run the app
 # Serve the application at port 8082
