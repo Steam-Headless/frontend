@@ -1,4 +1,5 @@
 from fasthtml.common import *
+#from pyxtermjs import XTermApp
 import requests
 
 # Define the bootstrap version, style, and icon packs
@@ -15,8 +16,56 @@ bootstrap_links = [
 # Attempt to avoid needing to use a .css file. Insert overrides here
 css = Style()
 
+# Function to populate the sqlite db with steam game data
+# TODO load the sqlite db into games and add/remove games from the db based on steam directory changes
+def get_installed_steam_games(steam_dir):
+    games = gamedb()
+    for filename in os.listdir(steam_dir):
+        if filename.endswith('.acf'):
+            acf_file = os.path.join(steam_dir, filename)
+            with open(acf_file, 'r', encoding='utf-8') as f:
+                acf_content = f.read()
+                appid_match = re.search(r'"appid"\s+"(\d+)"', acf_content)
+
+                if appid_match:
+                    appid = int(appid_match.group(1))
+                    game_name_match = re.search(r'"name"\s+"([^"]+)"', acf_content)
+                    if game_name_match:
+                        game_name = game_name_match.group(1)
+                        # if gamedb[appid]:
+                        #     continue
+                        # else:
+                        gamedb.insert(Game(
+                            game_id=appid,
+                            game_name=game_name,
+                            game_added=False
+                        ))
+
 # Page Element Contents and Structure
 #
+
+## Define how to desiplay/render items for the gamedb default table
+def render(game):
+    return Li(
+        Grid(
+            Strong(
+                game.game_name,
+                cls='list-group-item border-end-0 d-inline-block text-truncate',
+            ),
+            Button(
+                'Add To Sunshine', hx_get=f'/add/{game.game_id}', target_id=f'appid-{game.game_id}',
+                cls='btn btn-primary me-2'
+            ),
+            Button(
+                'Remove', hx_get=f'/remove/{game.game_id}', target_id=f'appid-{game.game_id}',
+                cls='btn btn-danger me-2'
+            ),
+            Strong(
+                (I(cls='bi bi-toggle-on') if game.game_added else I(cls='bi bi-toggle-off'))
+            )
+        ),
+        id=f'appid-{game.game_id}', cls='row list-group-item border-top-0',
+    )
 
 # Define the sidebar items
 def SidebarItem(text, hx_get, hx_vals, hx_target, **kwargs):
@@ -39,7 +88,7 @@ def Sidebar(sidebar_items, hx_get, hx_vals, hx_target):
         cls='collapse collapse-horizontal show border-end')
 
 # Add remove buttons to the sidebar
-sidebar_items = ('NoVNC', 'Sunshine', 'Shell', 'Logs', 'FAQ')
+sidebar_items = ('Desktop', 'Sunshine', 'Shell', 'Installers', 'App Manager', 'Logs', 'FAQ')
 
 # The Log Page content is defined here
 def logs_content():
@@ -77,15 +126,52 @@ def faq_content():
         cls="container"
     )
 
-# def terminal_content():
-#     return Div(
-#         Div(id='terminal'),
-#         Script("var term = new Terminal();\r\n        term.open(document.getElementById('terminal'));\r\n        term.write('Hello from \\x1B[1;3;31mxterm.js\\x1B[0m $ ')")
-#     )
+# A interactive SHELL is spawed here
+def terminal_content():
+    return Div(
+        Div(id='terminal', cls="py-5"),
+        Script("var term = new Terminal();\r\n        term.open(document.getElementById('terminal'));\r\n        term.write('Hello from \\x1B[1;3;31mxterm.js\\x1B[0m $ ')")
+    )
+
+# The installer page content is defined here
+# TODO figure out the best way to handle installers
+def installer_content():
+    return Div(
+        H1("Installers", cls="py-5"),
+        cls="container"
+    )
+
+# Sunshine App Manager content is defined here
+def sunshine_appmanager_content():
+    # gamedb.insert(Game(
+    #     game_id=123456,
+    #     game_name="Placeholder",
+    #     game_added=False
+    # ))
+
+    return Div(
+        H1("Sunshine Manager"),
+        cls='container py-5'
+    ), Div(
+        Br(),
+        Button("Reload Steam Games",
+            #onclick=get_installed_steam_games('/mnt/games/SteamLibrary/steamapps'),
+            cls='btn btn-primary container rtl'
+        ),
+        Div (
+            Ul(*gamedb()),
+            cls='list-group'
+        ), cls='row'
+    )
 
 # Invokation of the fast_app function
 # Define the main fastHTML app
-app,rt = fast_app(
+app,rt,gamedb,Game = fast_app('data/gamedb.db',
+    render=render,
+    game_id=int,
+    game_name=str,
+    game_added=bool,
+    pk='game_id',
     pico=False, # Avoid conflicts between bootstrap styling and the built in picolink
     hdrs=(
         #Meta(http_equiv='referrer', content='no-referrer'),
@@ -127,14 +213,33 @@ def get():
 def menucontent(menu: str, myIP: str):
 
     switch_cases = {
-        'NoVNC': f'<iframe id="desktopUI" src="http://{myIP}:8083/web/index.html?autoconnect=true" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
+        'Desktop': f'<iframe id="desktopUI" src="http://{myIP}:8083/web/index.html?autoconnect=true" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
         'Sunshine': f'<iframe id="sunshineUI" src="https://{myIP}:47990" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
         #'Shell': terminal_content(),
+        #'Installers':  installer_content(),
+        #'App Manager': sunshine_appmanager_content(),
         'Logs': logs_content(),
         'FAQ': faq_content()
     }
 
     return switch_cases.get(menu, Div("No content available", cls='py-5'))
+
+# Routes for the Sunshine App Manager
+# The route to remove a game from sunshine
+@rt('/remove/{game_id}')
+def get(game_id:int):
+    # TODO actually remove the game instead of toggeling the boolean in the db
+    game = gamedb.get[game_id]
+    game.game_added = False
+    return gamedb.update(game)
+
+# The route to add a game to sunshine
+@rt('/add/{game_id}')
+def get(game_id:int):
+    # TODO actually add the game instead of toggeling the boolean in the db
+    game = gamedb.get[game_id]
+    game.game_added = True
+    return gamedb.update(game)
 
 # Run the app
 # Serve the application at port 8082
