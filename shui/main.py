@@ -8,38 +8,13 @@ bootstrap_links = [
     Link(href=cdn+"@5.3.3/dist/css/bootstrap.min.css", rel="stylesheet"),
     Script(src=cdn+"@5.3.3/dist/js/bootstrap.bundle.min.js"),
     Link(href=cdn+"-icons@1.11.3/font/bootstrap-icons.min.css", rel="stylesheet"),
-    # Link(rel='stylesheet', href='node_modules/@xterm/xterm/css/xterm.css'), # Include xterm styles
-    # Script(src='node_modules/@xterm/xterm/lib/xterm.js'), # Include xterm styles
+    #Link(rel='stylesheet', href='node_modules/@xterm/xterm/css/xterm.css'), # Include xterm styles
+    #Script(src='node_modules/@xterm/xterm/lib/xterm.js'), # Include xterm styles
     Link(href=cdn+"about:blank", rel="shortcut icon") # Suppress favicon warning
 ]
 
 # Attempt to avoid needing to use a .css file. Insert overrides here
 css = Style()
-
-# Function to populate the sqlite db with steam game data
-# TODO load the sqlite db into games and add/remove games from the db based on steam directory changes
-def get_installed_steam_games(steam_dir):
-    games = gamedb()
-    for filename in os.listdir(steam_dir):
-        if filename.endswith('.acf'):
-            acf_file = os.path.join(steam_dir, filename)
-            with open(acf_file, 'r', encoding='utf-8') as f:
-                acf_content = f.read()
-                appid_match = re.search(r'"appid"\s+"(\d+)"', acf_content)
-
-                if appid_match:
-                    appid = int(appid_match.group(1))
-                    game_name_match = re.search(r'"name"\s+"([^"]+)"', acf_content)
-                    if game_name_match:
-                        game_name = game_name_match.group(1)
-                        # if gamedb[appid]:
-                        #     continue
-                        # else:
-                        gamedb.insert(Game(
-                            game_id=appid,
-                            game_name=game_name,
-                            game_added=False
-                        ))
 
 # Page Element Contents and Structure
 #
@@ -47,24 +22,29 @@ def get_installed_steam_games(steam_dir):
 ## Define how to desiplay/render items for the gamedb default table
 def render(game):
     return Li(
-        Grid(
+        Div(
             Strong(
                 game.game_name,
-                cls='list-group-item border-end-0 d-inline-block text-truncate',
+                cls='',
             ),
-            Button(
-                'Add To Sunshine', hx_get=f'/add/{game.game_id}', target_id=f'appid-{game.game_id}',
-                cls='btn btn-primary me-2'
+            Div(
+                Button(
+                    'Add To Sunshine', hx_get=f'/add/{game.game_id}', target_id=f'appid-{game.game_id}',
+                    cls='btn btn-primary me-2'
+                ),
+                Button(
+                    'Remove', hx_get=f'/remove/{game.game_id}', target_id=f'appid-{game.game_id}',
+                    cls='btn btn-danger me-2'
+                ),
+                Strong(
+                    I(cls='bi bi-toggle-on') if game.game_added else I(cls='bi bi-toggle-off'),
+                    id=f'appid-{game.game_id}'
+                ),
+                cls=''
             ),
-            Button(
-                'Remove', hx_get=f'/remove/{game.game_id}', target_id=f'appid-{game.game_id}',
-                cls='btn btn-danger me-2'
-            ),
-            Strong(
-                (I(cls='bi bi-toggle-on') if game.game_added else I(cls='bi bi-toggle-off'))
-            )
+            cls=''
         ),
-        id=f'appid-{game.game_id}', cls='row list-group-item border-top-0',
+        cls='list-group-item d-flex justify-content-between align-items-center',
     )
 
 # Define the sidebar items
@@ -143,25 +123,18 @@ def installer_content():
 
 # Sunshine App Manager content is defined here
 def sunshine_appmanager_content():
-    # gamedb.insert(Game(
-    #     game_id=123456,
-    #     game_name="Placeholder",
-    #     game_added=False
-    # ))
-
     return Div(
         H1("Sunshine Manager"),
         cls='container py-5'
     ), Div(
         Br(),
         Button("Reload Steam Games",
-            #onclick=get_installed_steam_games('/mnt/games/SteamLibrary/steamapps'),
+            hx_post="/reload",
             cls='btn btn-primary container rtl'
         ),
         Div (
-            Ul(*gamedb()),
-            cls='list-group'
-        ), cls='row'
+            Ul(*gamedb(), cls='list-group')
+        )
     )
 
 # Invokation of the fast_app function
@@ -180,6 +153,30 @@ app,rt,gamedb,Game = fast_app('data/gamedb.db',
         bootstrap_links, 
         css)
 )
+
+# Function to populate the sqlite db with steam game data
+# TODO load the sqlite db into games and add/remove games from the db based on steam directory changes
+def get_installed_steam_games(steam_dir):
+    for filename in os.listdir(steam_dir):
+        if filename.endswith('.acf'):
+            acf_file = os.path.join(steam_dir, filename)
+            with open(acf_file, 'r', encoding='utf-8') as f:
+                acf_content = f.read()
+                appid_match = re.search(r'"appid"\s+"(\d+)"', acf_content)
+
+                if appid_match:
+                    appid = int(appid_match.group(1))
+                    game_name_match = re.search(r'"name"\s+"([^"]+)"', acf_content)
+                    if game_name_match:
+                        game_name = game_name_match.group(1)
+                        if appid in gamedb:
+                            continue
+                        else:
+                            gamedb.insert(Game(
+                                game_id=appid,
+                                game_name=game_name,
+                                game_added=False
+                            ))
 
 # Define the routes for the application
 # The Main route and responses to GET/POST requests
@@ -217,7 +214,7 @@ def menucontent(menu: str, myIP: str):
         'Sunshine': f'<iframe id="sunshineUI" src="https://{myIP}:47990" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
         #'Shell': terminal_content(),
         #'Installers':  installer_content(),
-        #'App Manager': sunshine_appmanager_content(),
+        'App Manager': sunshine_appmanager_content(),
         'Logs': logs_content(),
         'FAQ': faq_content()
     }
@@ -225,21 +222,28 @@ def menucontent(menu: str, myIP: str):
     return switch_cases.get(menu, Div("No content available", cls='py-5'))
 
 # Routes for the Sunshine App Manager
+# The route to reload the app manager content
+@rt('/reload')
+def post():
+    get_installed_steam_games('/mnt/games/SteamLibrary/steamapps')
+
 # The route to remove a game from sunshine
 @rt('/remove/{game_id}')
 def get(game_id:int):
     # TODO actually remove the game instead of toggeling the boolean in the db
-    game = gamedb.get[game_id]
+    game = gamedb[game_id]
     game.game_added = False
-    return gamedb.update(game)
+    gamedb.update(game)
+    return I(hxswap="innerHTML", cls='bi bi-toggle-off')
 
 # The route to add a game to sunshine
 @rt('/add/{game_id}')
 def get(game_id:int):
     # TODO actually add the game instead of toggeling the boolean in the db
-    game = gamedb.get[game_id]
+    game = gamedb[game_id]
     game.game_added = True
-    return gamedb.update(game)
+    gamedb.update(game)
+    return I(hxswap="innerHTML", cls='bi bi-toggle-on')
 
 # Run the app
 # Serve the application at port 8082
