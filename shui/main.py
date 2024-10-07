@@ -123,14 +123,13 @@ def installer_content():
 
 # Sunshine App Manager content is defined here
 def sunshine_appmanager_content():
-    #get_installed_steam_games('/mnt/games/SteamLibrary/steamapps')
     return Div(
         H1("Sunshine Manager"),
         cls='container py-5'
     ), Div(
         Br(),
         Button("Reload Steam Games",
-            #onclick=get_installed_steam_games('/mnt/games/SteamLibrary/steamapps'),
+            hx_post="/reload",
             cls='btn btn-primary container rtl'
         ),
         Div (
@@ -170,8 +169,7 @@ def get_installed_steam_games(steam_dir):
                     game_name_match = re.search(r'"name"\s+"([^"]+)"', acf_content)
                     if game_name_match:
                         game_name = game_name_match.group(1)
-                        current_game = gamedb[appid]
-                        if current_game is not None:
+                        if appid in gamedb:
                             continue
                         else:
                             gamedb.insert(Game(
@@ -224,6 +222,11 @@ def menucontent(menu: str, myIP: str):
     return switch_cases.get(menu, Div("No content available", cls='py-5'))
 
 # Routes for the Sunshine App Manager
+# The route to reload the app manager content
+@rt('/reload')
+def post():
+    get_installed_steam_games('/mnt/games/SteamLibrary/steamapps')
+
 # The route to remove a game from sunshine
 @rt('/remove/{game_id}')
 def get(game_id:int):
