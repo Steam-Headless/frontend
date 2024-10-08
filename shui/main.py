@@ -20,12 +20,13 @@ css = Style()
 #
 
 ## Define how to desiplay/render items for the gamedb default table
+## Todo fix rendering to display the items in a more user friendly way
 def render(game):
     return Li(
-        Div(
+        Grid(
             Strong(
                 game.game_name,
-                cls='',
+                cls='col',
             ),
             Div(
                 Button(
@@ -40,11 +41,11 @@ def render(game):
                     I(cls='bi bi-toggle-on') if game.game_added else I(cls='bi bi-toggle-off'),
                     id=f'appid-{game.game_id}'
                 ),
-                cls=''
+                cls='col'
             ),
             cls=''
         ),
-        cls='list-group-item d-flex justify-content-between align-items-center',
+        cls='list-group-item row',
     )
 
 # Define the sidebar items
@@ -110,7 +111,7 @@ def faq_content():
 def terminal_content():
     return Div(
         Div(id='terminal', cls="py-5"),
-        Script("var term = new Terminal();\r\n        term.open(document.getElementById('terminal'));\r\n        term.write('Hello from \\x1B[1;3;31mxterm.js\\x1B[0m $ ')")
+        Script("var term = new Terminal(); term.open(document.getElementById('terminal'));")
     )
 
 # The installer page content is defined here
@@ -130,16 +131,30 @@ def sunshine_appmanager_content():
         Br(),
         Button("Reload Steam Games",
             hx_post="/reload",
-            cls='btn btn-primary container rtl'
+            cls='btn btn-primary container'
         ),
+        Br(),
+        Script('''
+            function filterList() { 
+                var input, filter, ul, li, i, txtValue; 
+                input = document.getElementById(\'filter-games\'); 
+                filter = input.value.toLowerCase(); 
+                ul = document.getElementById("game-ul"); 
+                li = ul.getElementsByTagName(\'li\'); 
+                for (i = 0; i < li.length; i++) { 
+                    txtValue = li[i].textContent || li[i].innerText; if (txtValue.toLowerCase().indexOf(filter) > -1) { li[i].style.display = ""; } else { li[i].style.display = "none"; } 
+                } 
+            }
+        '''),
+        Input(id="filter-games", onkeyup="filterList()", placeholder="Type to filter list", cls='container form-control'),
         Div (
-            Ul(*gamedb(), cls='list-group')
+            Ul(*gamedb(order_by='-game_added'), id='game-ul', cls='list-group')
         )
     )
 
 # Invokation of the fast_app function
 # Define the main fastHTML app
-app,rt,gamedb,Game = fast_app('data/gamedb.db',
+app,rt,gamedb,Game = fast_app('/home/default/.cache/gamedb.db',
     render=render,
     game_id=int,
     game_name=str,
@@ -147,9 +162,9 @@ app,rt,gamedb,Game = fast_app('data/gamedb.db',
     pk='game_id',
     pico=False, # Avoid conflicts between bootstrap styling and the built in picolink
     hdrs=(
-        #Meta(http_equiv='referrer', content='no-referrer'),
-        #Meta(http_equiv='Content-Security-Policy', content="frame-src 'self' *"),
-        #Meta(http_equiv='Access-Control-Allow-Origin', content="*"),
+        Meta(http_equiv='referrer', content='no-referrer'),
+        Meta(http_equiv='Content-Security-Policy', content="frame-src 'self' *"),
+        Meta(http_equiv='Access-Control-Allow-Origin', content="*"),
         bootstrap_links, 
         css)
 )
