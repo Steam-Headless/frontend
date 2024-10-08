@@ -20,6 +20,7 @@ css = Style()
 #
 
 ## Define how to desiplay/render items for the gamedb default table
+## Todo fix rendering to display the items in a more user friendly way
 def render(game):
     return Li(
         Grid(
@@ -133,7 +134,19 @@ def sunshine_appmanager_content():
             cls='btn btn-primary container'
         ),
         Br(),
-        Input(id="filter-games", name="filter", placeholder="Type to filter list", cls='container'),
+        Script('''
+            function filterList() { 
+                var input, filter, ul, li, i, txtValue; 
+                input = document.getElementById(\'filter-games\'); 
+                filter = input.value.toLowerCase(); 
+                ul = document.getElementById("game-ul"); 
+                li = ul.getElementsByTagName(\'li\'); 
+                for (i = 0; i < li.length; i++) { 
+                    txtValue = li[i].textContent || li[i].innerText; if (txtValue.toLowerCase().indexOf(filter) > -1) { li[i].style.display = ""; } else { li[i].style.display = "none"; } 
+                } 
+            }
+        '''),
+        Input(id="filter-games", onkeyup="filterList()", placeholder="Type to filter list", cls='container form-control'),
         Div (
             Ul(*gamedb(order_by='-game_added'), id='game-ul', cls='list-group')
         )
@@ -149,9 +162,9 @@ app,rt,gamedb,Game = fast_app('/home/default/.cache/gamedb.db',
     pk='game_id',
     pico=False, # Avoid conflicts between bootstrap styling and the built in picolink
     hdrs=(
-        #Meta(http_equiv='referrer', content='no-referrer'),
-        #Meta(http_equiv='Content-Security-Policy', content="frame-src 'self' *"),
-        #Meta(http_equiv='Access-Control-Allow-Origin', content="*"),
+        Meta(http_equiv='referrer', content='no-referrer'),
+        Meta(http_equiv='Content-Security-Policy', content="frame-src 'self' *"),
+        Meta(http_equiv='Access-Control-Allow-Origin', content="*"),
         bootstrap_links, 
         css)
 )
