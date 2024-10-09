@@ -203,7 +203,7 @@ def add_sunshine_app(**kwargs):
     app_name = kwargs['app_name']
     app_id = kwargs['app_id']
     conf_loc = kwargs['conf_loc']
-    with open(filename, 'r', encoding='utf-8') as f:
+    with open(conf_loc, 'r', encoding='utf-8') as f:
         data = load_apps_from_file(conf_loc)
 
     new_app = {
