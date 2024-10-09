@@ -25,10 +25,10 @@ css = Style()
 ## Todo fix rendering to display the items in a more user friendly way
 def render(game):
     return Li(
-        Grid(
+        Div(
             Strong(
                 game.game_name,
-                cls='col',
+                cls='col-auto',
             ),
             Div(
                 Button(
@@ -43,11 +43,11 @@ def render(game):
                     I(cls='bi bi-toggle-on') if game.game_added else I(cls='bi bi-toggle-off'),
                     id=f'appid-{game.game_id}'
                 ),
-                cls='col'
+                cls='col d-flex justify-content-end'
             ),
-            cls=''
+            cls='row'
         ),
-        cls='list-group-item row',
+        cls='list-group-item',
     )
 
 # Define the sidebar items
@@ -133,7 +133,7 @@ def sunshine_appmanager_content():
         Br(),
         Button("Reload Steam Games",
             hx_post="/reload",
-            cls='btn btn-primary container'
+            cls='container-fluid btn btn-primary'
         ),
         Br(),
         Script('''
@@ -148,9 +148,10 @@ def sunshine_appmanager_content():
                 } 
             }
         '''),
-        Input(id="filter-games", onkeyup="filterList()", placeholder="Type to filter list", cls='container form-control'),
+        Input(id="filter-games", onkeyup="filterList()", placeholder="Type to filter list", cls='container-fluid form-control'),
         Div (
-            Ul(*gamedb(order_by='-game_added'), id='game-ul', cls='list-group')
+            Ul(*gamedb(order_by='-game_added'), id='game-ul', cls='list-group'),
+            cls='row py-2'
         )
     )
 
