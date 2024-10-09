@@ -1,6 +1,8 @@
 from fasthtml.common import *
 #from pyxtermjs import XTermApp
 import requests
+import json
+import os
 
 # Define the bootstrap version, style, and icon packs
 cdn = 'https://cdn.jsdelivr.net/npm/bootstrap'
@@ -162,9 +164,10 @@ app,rt,gamedb,Game = fast_app('/home/default/.cache/gamedb.db',
     pk='game_id',
     pico=False, # Avoid conflicts between bootstrap styling and the built in picolink
     hdrs=(
-        Meta(http_equiv='referrer', content='no-referrer'),
-        Meta(http_equiv='Content-Security-Policy', content="frame-src 'self' *"),
-        Meta(http_equiv='Access-Control-Allow-Origin', content="*"),
+        #Meta(http_equiv='referrer', content='no-referrer'),
+        #Meta(http_equiv='Content-Security-Policy', content="frame-src 'self' *"),
+        #Meta(http_equiv='Content-Security-Policy', content="upgrade-insecure-requests"),
+        #Meta(http_equiv='Access-Control-Allow-Origin', content="*"),
         bootstrap_links, 
         css)
 )
@@ -192,6 +195,55 @@ def get_installed_steam_games(steam_dir):
                                 game_name=game_name,
                                 game_added=False
                             ))
+
+# Functions to manipulate the sunshine apps.json file
+# TODO change functionality to add/remove apps from the sunshine config file using the appid
+def add_sunshine_app(**kwargs):
+    app_name = kwargs['app_name']
+    app_id = kwargs['app_id']
+    conf_loc = kwargs['conf_loc']
+    with open(filename, 'r', encoding='utf-8') as f:
+        data = load_apps_from_file(conf_loc)
+
+    new_app = {
+        "name": "{app_name}",
+        "output": "SH-run.txt",
+        "detached": [
+            "/usr/bin/sunshine-run /usr/games/steam steam://rungameid/{app_id}"
+        ],
+        "exclude-global-prep-cmd": "True",
+        "elevated": "False",
+         "prep-cmd": [
+            {
+                "do": "/usr/bin/xfce4-minimise-all-windows",
+                "undo": "/usr/bin/sunshine-stop"
+            },
+            {
+                "do": "",
+                "undo": "/usr/bin/xfce4-close-all-windows"
+            }
+        ],
+        "image-path": "/home/default/.local/share/posters/{app_id}.png",
+        "working-dir": "/home/default"
+    }
+
+    data['apps'].append(new_app)
+    updated_json_data = json.dumps(data, indent=4)
+
+    save_apps_to_file(conf_loc, apps)
+
+def del_sunshine_app(**kwargs):
+    app_name = kwargs['app_name']
+    app_id = kwargs['app_id']
+    conf_loc = kwargs['conf_loc']
+    with open(filename, 'r', encoding='utf-8') as f:
+        data = load_apps_from_file(conf_loc)
+    
+    # Filter out the app with the specified name? maybe a better way?
+    data['apps'] = [app for app in data['apps'] if app['name'] != app_name] 
+    
+    updated_json_data = json.dumps(data, indent=4)
+    save_apps_to_file(conf_loc, apps)
 
 # Define the routes for the application
 # The Main route and responses to GET/POST requests
@@ -249,6 +301,7 @@ def get(game_id:int):
     game = gamedb[game_id]
     game.game_added = False
     gamedb.update(game)
+    #add_sunshine_app(app_name=game.game_name, app_id=game.app_id, conf_loc='/home/default/.config/sunshine/apps.json')
     return I(hxswap="innerHTML", cls='bi bi-toggle-off')
 
 # The route to add a game to sunshine
@@ -258,6 +311,7 @@ def get(game_id:int):
     game = gamedb[game_id]
     game.game_added = True
     gamedb.update(game)
+    #del_sunshine_app(app_name=game.game_name, app_id=game.app_id, conf_loc='/home/default/.config/sunshine/apps.json')
     return I(hxswap="innerHTML", cls='bi bi-toggle-on')
 
 # Run the app
