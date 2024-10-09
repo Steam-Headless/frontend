@@ -230,7 +230,8 @@ def add_sunshine_app(**kwargs):
     data['apps'].append(new_app)
     updated_json_data = json.dumps(data, indent=4)
 
-    save_apps_to_file(conf_loc, apps)
+    with open(conf_loc, 'w') as json_file:
+        json_file.write(updated_json_data)
 
 def del_sunshine_app(**kwargs):
     app_name = kwargs['app_name']
@@ -243,7 +244,9 @@ def del_sunshine_app(**kwargs):
     data['apps'] = [app for app in data['apps'] if app['name'] != app_name] 
     
     updated_json_data = json.dumps(data, indent=4)
-    save_apps_to_file(conf_loc, apps)
+
+    with open(conf_loc, 'w') as json_file:
+        json_file.write(updated_json_data)
 
 # Define the routes for the application
 # The Main route and responses to GET/POST requests
