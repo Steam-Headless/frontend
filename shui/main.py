@@ -1,6 +1,7 @@
 from fasthtml.common import *
-#from pyxtermjs import XTermApp
 import requests
+import json
+import os
 
 # Define the bootstrap version, style, and icon packs
 cdn = 'https://cdn.jsdelivr.net/npm/bootstrap'
@@ -13,8 +14,24 @@ bootstrap_links = [
     Link(href=cdn+"about:blank", rel="shortcut icon") # Suppress favicon warning
 ]
 
-# Attempt to avoid needing to use a .css file. Insert overrides here
-css = Style()
+# Attempt to avoid needing to use a .css file. Insert overrides here if needed
+# Placeholders for menu elements
+css = Style("""
+.bi-Desktop {
+}
+.bi-Sunshine {
+}
+.bi-Shell {
+}
+.bi-Installers {
+}
+.bi-AppManager {
+}
+.bi-Logs {
+}
+.bi-FAQ {
+}
+""")
 
 # Page Element Contents and Structure
 #
@@ -23,10 +40,10 @@ css = Style()
 ## Todo fix rendering to display the items in a more user friendly way
 def render(game):
     return Li(
-        Grid(
+        Div(
             Strong(
                 game.game_name,
-                cls='col',
+                cls='col-auto',
             ),
             Div(
                 Button(
@@ -41,11 +58,11 @@ def render(game):
                     I(cls='bi bi-toggle-on') if game.game_added else I(cls='bi bi-toggle-off'),
                     id=f'appid-{game.game_id}'
                 ),
-                cls='col'
+                cls='col d-flex justify-content-end'
             ),
-            cls=''
+            cls='row'
         ),
-        cls='list-group-item row',
+        cls='list-group-item',
     )
 
 # Define the sidebar items
@@ -128,12 +145,10 @@ def sunshine_appmanager_content():
         H1("Sunshine Manager"),
         cls='container py-5'
     ), Div(
-        Br(),
         Button("Reload Steam Games",
             hx_post="/reload",
-            cls='btn btn-primary container'
+            cls='container-fluid btn btn-primary'
         ),
-        Br(),
         Script('''
             function filterList() { 
                 var input, filter, ul, li, i, txtValue; 
@@ -146,9 +161,10 @@ def sunshine_appmanager_content():
                 } 
             }
         '''),
-        Input(id="filter-games", onkeyup="filterList()", placeholder="Type to filter list", cls='container form-control'),
+        Input(id="filter-games", onkeyup="filterList()", placeholder="Type to filter list", cls='container-fluid form-control'),
         Div (
-            Ul(*gamedb(order_by='-game_added'), id='game-ul', cls='list-group')
+            Ul(*gamedb(order_by='-game_added'), id='game-ul', cls='list-group'),
+            cls='row py-2'
         )
     )
 
@@ -162,9 +178,10 @@ app,rt,gamedb,Game = fast_app('/home/default/.cache/gamedb.db',
     pk='game_id',
     pico=False, # Avoid conflicts between bootstrap styling and the built in picolink
     hdrs=(
-        Meta(http_equiv='referrer', content='no-referrer'),
-        Meta(http_equiv='Content-Security-Policy', content="frame-src 'self' *"),
-        Meta(http_equiv='Access-Control-Allow-Origin', content="*"),
+        #Meta(http_equiv='referrer', content='no-referrer'),
+        #Meta(http_equiv='Content-Security-Policy', content="frame-src 'self' *"),
+        #Meta(http_equiv='Content-Security-Policy', content="upgrade-insecure-requests"),
+        #Meta(http_equiv='Access-Control-Allow-Origin', content="*"),
         bootstrap_links, 
         css)
 )
@@ -192,6 +209,72 @@ def get_installed_steam_games(steam_dir):
                                 game_name=game_name,
                                 game_added=False
                             ))
+
+# Functions to manipulate the sunshine apps.json file
+# TODO change functionality to add/remove apps from the sunshine config file using the appid
+def add_sunshine_app(**kwargs):
+    app_name = kwargs['app_name']
+    app_id = kwargs['app_id']
+    conf_loc = kwargs['conf_loc']
+
+    with open(conf_loc, 'r') as f:
+        data = json.load(f)
+
+    new_app = {
+        "name": f"{app_name}",
+        "output": "SH-run.txt",
+        "detached": [
+            f"/usr/bin/sunshine-run /usr/games/steam steam://rungameid/{app_id}"
+        ],
+        "exclude-global-prep-cmd": "True",
+        "elevated": "False",
+         "prep-cmd": [
+            {
+                "do": "/usr/bin/xfce4-minimise-all-windows",
+                "undo": "/usr/bin/sunshine-stop"
+            },
+            {
+                "do": "",
+                "undo": "/usr/bin/xfce4-close-all-windows"
+            }
+        ],
+        "image-path": f"/home/default/.local/share/posters/{app_id}.png",
+        "working-dir": "/home/default"
+    }
+
+    data['apps'].append(new_app)
+
+    with open(conf_loc, 'w') as f:
+        json.dump(data, f, indent=4)
+
+def del_sunshine_app(**kwargs):
+    app_name = kwargs['app_name']
+    app_id = kwargs['app_id']
+    conf_loc = kwargs['conf_loc']
+    with open(conf_loc, 'r', encoding='utf-8') as f:
+        data = json.load(f) 
+    
+    # Filter out the app with the specified name? maybe a better way?
+    data['apps'] = [app for app in data['apps'] if app['name'] != app_name] 
+
+    with open(conf_loc, 'w') as f:
+        json.dump(data, f, indent=4)
+
+# Function to fetch and resize Steam game posters
+# TODO switch to streamgriddb? can only find landscape images from steam
+# Another option to create a custom poster for steam headless using the capsule image and generated frame?
+def fetch_and_resize_poster(game_id, save_directory='/home/default/.local/share/posters'):
+    # Create the directory if it doesn't exist
+    if not os.path.exists(save_directory):
+        os.makedirs(save_directory)
+    
+    url = f'https://store.steampowered.com/api/appdetails?appids={game_id}'
+    
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        if str(game_id) in data and data[str(game_id)]['success']:
+            poster_url = data[str(game_id)]['data']['capsule_image']
 
 # Define the routes for the application
 # The Main route and responses to GET/POST requests
@@ -245,19 +328,19 @@ def post():
 # The route to remove a game from sunshine
 @rt('/remove/{game_id}')
 def get(game_id:int):
-    # TODO actually remove the game instead of toggeling the boolean in the db
     game = gamedb[game_id]
     game.game_added = False
     gamedb.update(game)
+    del_sunshine_app(app_name=game.game_name, app_id=game.game_id, conf_loc='/home/default/.config/sunshine/apps.json')
     return I(hxswap="innerHTML", cls='bi bi-toggle-off')
 
 # The route to add a game to sunshine
 @rt('/add/{game_id}')
 def get(game_id:int):
-    # TODO actually add the game instead of toggeling the boolean in the db
     game = gamedb[game_id]
     game.game_added = True
     gamedb.update(game)
+    add_sunshine_app(app_name=game.game_name, app_id=game.game_id, conf_loc='/home/default/.config/sunshine/apps.json')
     return I(hxswap="innerHTML", cls='bi bi-toggle-on')
 
 # Run the app
