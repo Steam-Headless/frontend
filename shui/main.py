@@ -1,5 +1,4 @@
 from fasthtml.common import *
-#from pyxtermjs import XTermApp
 import requests
 import json
 import os
@@ -217,8 +216,7 @@ def add_sunshine_app(**kwargs):
     app_name = kwargs['app_name']
     app_id = kwargs['app_id']
     conf_loc = kwargs['conf_loc']
-    # with open(conf_loc, 'r', encoding='utf-8') as f:
-    #     data = json.loads(f)
+
     with open(conf_loc, 'r') as f:
         data = json.load(f)
 
@@ -261,6 +259,22 @@ def del_sunshine_app(**kwargs):
 
     with open(conf_loc, 'w') as f:
         json.dump(data, f, indent=4)
+
+# Function to fetch and resize Steam game posters
+# TODO switch to streamgriddb? can only find landscape images from steam
+# Another option to create a custom poster for steam headless using the capsule image and generated frame?
+def fetch_and_resize_poster(game_id, save_directory='/home/default/.local/share/posters'):
+    # Create the directory if it doesn't exist
+    if not os.path.exists(save_directory):
+        os.makedirs(save_directory)
+    
+    url = f'https://store.steampowered.com/api/appdetails?appids={game_id}'
+    
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        if str(game_id) in data and data[str(game_id)]['success']:
+            poster_url = data[str(game_id)]['data']['capsule_image']
 
 # Define the routes for the application
 # The Main route and responses to GET/POST requests
@@ -314,7 +328,6 @@ def post():
 # The route to remove a game from sunshine
 @rt('/remove/{game_id}')
 def get(game_id:int):
-    # TODO actually remove the game instead of toggeling the boolean in the db
     game = gamedb[game_id]
     game.game_added = False
     gamedb.update(game)
@@ -324,7 +337,6 @@ def get(game_id:int):
 # The route to add a game to sunshine
 @rt('/add/{game_id}')
 def get(game_id:int):
-    # TODO actually add the game instead of toggeling the boolean in the db
     game = gamedb[game_id]
     game.game_added = True
     gamedb.update(game)
