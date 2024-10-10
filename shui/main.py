@@ -15,8 +15,24 @@ bootstrap_links = [
     Link(href=cdn+"about:blank", rel="shortcut icon") # Suppress favicon warning
 ]
 
-# Attempt to avoid needing to use a .css file. Insert overrides here
-css = Style()
+# Attempt to avoid needing to use a .css file. Insert overrides here if needed
+# Placeholders for menu elements
+css = Style("""
+.bi-Desktop {
+}
+.bi-Sunshine {
+}
+.bi-Shell {
+}
+.bi-Installers {
+}
+.bi-AppManager {
+}
+.bi-Logs {
+}
+.bi-FAQ {
+}
+""")
 
 # Page Element Contents and Structure
 #
@@ -130,12 +146,10 @@ def sunshine_appmanager_content():
         H1("Sunshine Manager"),
         cls='container py-5'
     ), Div(
-        Br(),
         Button("Reload Steam Games",
             hx_post="/reload",
             cls='container-fluid btn btn-primary'
         ),
-        Br(),
         Script('''
             function filterList() { 
                 var input, filter, ul, li, i, txtValue; 
@@ -203,14 +217,16 @@ def add_sunshine_app(**kwargs):
     app_name = kwargs['app_name']
     app_id = kwargs['app_id']
     conf_loc = kwargs['conf_loc']
-    with open(conf_loc, 'r', encoding='utf-8') as f:
-        data = load_apps_from_file(conf_loc)
+    # with open(conf_loc, 'r', encoding='utf-8') as f:
+    #     data = json.loads(f)
+    with open(conf_loc, 'r') as f:
+        data = json.load(f)
 
     new_app = {
-        "name": "{app_name}",
+        "name": f"{app_name}",
         "output": "SH-run.txt",
         "detached": [
-            "/usr/bin/sunshine-run /usr/games/steam steam://rungameid/{app_id}"
+            f"/usr/bin/sunshine-run /usr/games/steam steam://rungameid/{app_id}"
         ],
         "exclude-global-prep-cmd": "True",
         "elevated": "False",
@@ -224,30 +240,27 @@ def add_sunshine_app(**kwargs):
                 "undo": "/usr/bin/xfce4-close-all-windows"
             }
         ],
-        "image-path": "/home/default/.local/share/posters/{app_id}.png",
+        "image-path": f"/home/default/.local/share/posters/{app_id}.png",
         "working-dir": "/home/default"
     }
 
     data['apps'].append(new_app)
-    updated_json_data = json.dumps(data, indent=4)
 
-    with open(conf_loc, 'w') as json_file:
-        json_file.write(updated_json_data)
+    with open(conf_loc, 'w') as f:
+        json.dump(data, f, indent=4)
 
 def del_sunshine_app(**kwargs):
     app_name = kwargs['app_name']
     app_id = kwargs['app_id']
     conf_loc = kwargs['conf_loc']
-    with open(filename, 'r', encoding='utf-8') as f:
-        data = load_apps_from_file(conf_loc)
+    with open(conf_loc, 'r', encoding='utf-8') as f:
+        data = json.load(f) 
     
     # Filter out the app with the specified name? maybe a better way?
     data['apps'] = [app for app in data['apps'] if app['name'] != app_name] 
-    
-    updated_json_data = json.dumps(data, indent=4)
 
-    with open(conf_loc, 'w') as json_file:
-        json_file.write(updated_json_data)
+    with open(conf_loc, 'w') as f:
+        json.dump(data, f, indent=4)
 
 # Define the routes for the application
 # The Main route and responses to GET/POST requests
@@ -305,7 +318,7 @@ def get(game_id:int):
     game = gamedb[game_id]
     game.game_added = False
     gamedb.update(game)
-    #add_sunshine_app(app_name=game.game_name, app_id=game.app_id, conf_loc='/home/default/.config/sunshine/apps.json')
+    del_sunshine_app(app_name=game.game_name, app_id=game.game_id, conf_loc='/home/default/.config/sunshine/apps.json')
     return I(hxswap="innerHTML", cls='bi bi-toggle-off')
 
 # The route to add a game to sunshine
@@ -315,7 +328,7 @@ def get(game_id:int):
     game = gamedb[game_id]
     game.game_added = True
     gamedb.update(game)
-    #del_sunshine_app(app_name=game.game_name, app_id=game.app_id, conf_loc='/home/default/.config/sunshine/apps.json')
+    add_sunshine_app(app_name=game.game_name, app_id=game.game_id, conf_loc='/home/default/.config/sunshine/apps.json')
     return I(hxswap="innerHTML", cls='bi bi-toggle-on')
 
 # Run the app
