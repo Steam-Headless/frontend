@@ -4,8 +4,8 @@
 # File Created: Sunday, 17th September 2023 5:10:38 pm
 # Author: Josh.5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Friday, 22nd September 2023 3:13:18 pm
-# Modified By: Josh.5 (jsunnex@gmail.com)
+# Last Modified: Saturday, 12th October 2024 11:59:26 am
+# Modified By: Josh5 (jsunnex@gmail.com)
 ###
 
 NAME="$(basename $0)"
@@ -84,6 +84,11 @@ fi
 
 trap "cleanup" TERM QUIT INT EXIT
 
+# Source venv
+if [ -f "${WEB_ROOT:?}"/venv/bin/activate ]; then
+    source "${WEB_ROOT:?}"/venv/bin/activate
+fi
+
 # try to find websockify (prefer local, try global, then download local)
 if [[ -d ${HERE}/websockify ]]; then
     WEBSOCKIFY=${HERE}/websockify/run
@@ -157,8 +162,7 @@ fi
 
 # Run FastHTML server
 echo "Starting SHUI fastHTML page on port ${SHUI_PORT:?}"
-PYTHON_BINARY=$(which python3 2>/dev/null)
-${PYTHON_BINARY:-/usr/bin/python3} ${WEB_ROOT:?}/shui/main.py & # FIXME
+python3 ${WEB_ROOT:?}/shui/main.py &
 shui_pid="$!"
 sleep 1
 if [ -z "$shui_pid" ] || ! ps -eo pid= | grep -w "$shui_pid" > /dev/null; then
