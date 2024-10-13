@@ -370,6 +370,7 @@ def menucontent(menu: str, myIP: str):
 @rt('/reload')
 def post():
     get_installed_steam_games('/mnt/games/SteamLibrary/steamapps')
+    return Script('''window.location.href = "/"''')
 
 # The route to remove a game from sunshine
 @rt('/remove/{game_id}')
