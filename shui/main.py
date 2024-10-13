@@ -236,7 +236,7 @@ def add_sunshine_app(**kwargs):
 
     data['apps'].append(new_app)
 
-    fetch_and_resize_poster(app_id)
+    fetch_and_resize_poster(app_id, app_name)
 
     with open(conf_loc, 'w') as f:
         json.dump(data, f, indent=4)
@@ -256,7 +256,7 @@ def del_sunshine_app(**kwargs):
 
 # Function to fetch and resize Steam game posters
 # TODO switch to streamgriddb? can only find landscape images from steam
-def fetch_and_resize_poster(game_id, save_directory='/home/default/.local/share/posters'):
+def fetch_and_resize_poster(game_id, game_name, save_directory='/home/default/.local/share/posters'):
     # Create the directory if it doesn't exist
     if not os.path.exists(save_directory):
         os.makedirs(save_directory)
@@ -266,33 +266,62 @@ def fetch_and_resize_poster(game_id, save_directory='/home/default/.local/share/
     draw = ImageDraw.Draw(image)
 
     # Define the font and text size
+    # Draw a Title to show that it is steam-headless managed
     font = ImageFont.truetype("arial.ttf", 40)
     draw.text((150, 20), "Steam Headless", fill='white', font=font)
 
-    # Fetch the game poster from Steam API
-    url = f'https://store.steampowered.com/api/appdetails?appids={game_id}'
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        if str(game_id) in data and data[str(game_id)]['success']:
-            poster_url = data[str(game_id)]['data']['header_image']
+    # Draw tha game name at the footer
+    text_width = draw.textlength(str(game_name), font=font)
+    name_x_offset = (image.width - text_width) / 2
 
-            response_poster = requests.get(poster_url)
-            if response_poster.status_code == 200:
-                # Open the fetched image and resize it to fit
-                poster_image = Image.open(requests.get(poster_url, stream=True).raw)
-                height = int((600 / poster_image.width) * poster_image.height)
-                resized_poster = poster_image.resize((600, height))
+    # Draw the text with wrapping if necessary
+    lines = []
+    words = game_name.split(' ')
+    line = ''
+    for word in words:
+        test_line = line + word + ' '
+        test_width = draw.textlength(test_line, font=font)
+        if test_width <= image.width:
+            line = test_line
+        else:
+            lines.append(line)
+            line = word + ' '
+    lines.append(line)
+
+    # Calculate the y-coordinate for each line of text
+    name_y_offset = 600  # Starting y-coordinate
+    for i, line in enumerate(lines):
+        name_x_offset = (image.width - draw.textlength(str(line), font=font)) / 2
+        draw.text((name_x_offset, name_y_offset), line, fill='white', font=font)
+        name_y_offset += 40
+
+    # Check if the image already exists to avoid overwriting
+    if not os.path.exists(os.path.join(save_directory, f'{game_id}.png')):
+        # Fetch the game poster from Steam API
+        url = f'https://store.steampowered.com/api/appdetails?appids={game_id}'
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            if str(game_id) in data and data[str(game_id)]['success']:
+                poster_url = data[str(game_id)]['data']['header_image']
+
+                response_poster = requests.get(poster_url)
+                if response_poster.status_code == 200:
+                    # Open the fetched image and resize it to fit
+                    poster_image = Image.open(requests.get(poster_url, stream=True).raw)
+                    height = int((600 / poster_image.width) * poster_image.height)
+                    resized_poster = poster_image.resize((600, height))
+                    
+                    # Calculate the position to center the image on the main image
+                    x_offset = 0
+                    y_offset = (800 - height) // 2
+                    
+                    # Paste the resized poster onto the black background
+                    image.paste(resized_poster, (x_offset, y_offset))
+        #TODO else use steamgridb here if api fails???
                 
-                # Calculate the position to center the image on the main image
-                x_offset = 0
-                y_offset = (800 - height) // 2
-                
-                # Paste the resized poster onto the black background
-                image.paste(resized_poster, (x_offset, y_offset))
-            
-    # Save the final image appid.png
-    image.save(f'{save_directory}/{game_id}.png')
+        # Save the final image appid.png
+        image.save(f'{save_directory}/{game_id}.png')
 
 # Define the routes for the application
 # The Main route and responses to GET/POST requests
@@ -328,7 +357,6 @@ def menucontent(menu: str, myIP: str):
     switch_cases = {
         'Desktop': f'<iframe id="desktopUI" src="http://{myIP}:8083/web/index.html?autoconnect=true" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
         'Sunshine': f'<iframe id="sunshineUI" src="https://{myIP}:47990" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
-        #'Shell': terminal_content(),
         #'Installers':  installer_content(),
         'App Manager': sunshine_appmanager_content(),
         'Logs': logs_content(),
