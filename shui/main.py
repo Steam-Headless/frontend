@@ -10,8 +10,6 @@ bootstrap_links = [
     Link(href=cdn+"@5.3.3/dist/css/bootstrap.min.css", rel="stylesheet"),
     Script(src=cdn+"@5.3.3/dist/js/bootstrap.bundle.min.js"),
     Link(href=cdn+"-icons@1.11.3/font/bootstrap-icons.min.css", rel="stylesheet"),
-    #Link(rel='stylesheet', href='node_modules/@xterm/xterm/css/xterm.css'), # Include xterm styles
-    #Script(src='node_modules/@xterm/xterm/lib/xterm.js'), # Include xterm styles
     Link(href=cdn+"about:blank", rel="shortcut icon") # Suppress favicon warning
 ]
 
@@ -87,7 +85,7 @@ def Sidebar(sidebar_items, hx_get, hx_vals, hx_target):
         cls='collapse collapse-horizontal show border-end')
 
 # Add remove buttons to the sidebar
-sidebar_items = ('Desktop', 'Sunshine', 'Shell', 'Installers', 'App Manager', 'Logs', 'FAQ')
+sidebar_items = ('Desktop', 'Sunshine', 'Installers', 'App Manager', 'Logs', 'FAQ')
 
 # The Log Page content is defined here
 def logs_content():
@@ -123,13 +121,6 @@ def faq_content():
         H1("FAQ", cls="py-5"),
         Pre(_content),
         cls="container"
-    )
-
-# A interactive SHELL is spawed here
-def terminal_content():
-    return Div(
-        Div(id='terminal', cls="py-5"),
-        Script("var term = new Terminal(); term.open(document.getElementById('terminal'));")
     )
 
 # The installer page content is defined here
@@ -244,6 +235,8 @@ def add_sunshine_app(**kwargs):
     }
 
     data['apps'].append(new_app)
+
+    fetch_and_resize_poster(app_id)
 
     with open(conf_loc, 'w') as f:
         json.dump(data, f, indent=4)
