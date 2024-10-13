@@ -1,4 +1,5 @@
 from fasthtml.common import *
+from PIL import Image, ImageDraw, ImageFont
 import requests
 import json
 import os
@@ -262,19 +263,43 @@ def del_sunshine_app(**kwargs):
 
 # Function to fetch and resize Steam game posters
 # TODO switch to streamgriddb? can only find landscape images from steam
-# Another option to create a custom poster for steam headless using the capsule image and generated frame?
 def fetch_and_resize_poster(game_id, save_directory='/home/default/.local/share/posters'):
     # Create the directory if it doesn't exist
     if not os.path.exists(save_directory):
         os.makedirs(save_directory)
     
+    # Create a blank image with black background
+    image = Image.new('RGB', (600, 800), 'black')
+    draw = ImageDraw.Draw(image)
+
+    # Define the font and text size
+    font = ImageFont.truetype("arial.ttf", 40)
+    draw.text((150, 20), "Steam Headless", fill='white', font=font)
+
+    # Fetch the game poster from Steam API
     url = f'https://store.steampowered.com/api/appdetails?appids={game_id}'
-    
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
         if str(game_id) in data and data[str(game_id)]['success']:
-            poster_url = data[str(game_id)]['data']['capsule_image']
+            poster_url = data[str(game_id)]['data']['header_image']
+
+            response_poster = requests.get(poster_url)
+            if response_poster.status_code == 200:
+                # Open the fetched image and resize it to fit
+                poster_image = Image.open(requests.get(poster_url, stream=True).raw)
+                height = int((600 / poster_image.width) * poster_image.height)
+                resized_poster = poster_image.resize((600, height))
+                
+                # Calculate the position to center the image on the main image
+                x_offset = 0
+                y_offset = (800 - height) // 2
+                
+                # Paste the resized poster onto the black background
+                image.paste(resized_poster, (x_offset, y_offset))
+            
+    # Save the final image appid.png
+    image.save(f'{save_directory}/{game_id}.png')
 
 # Define the routes for the application
 # The Main route and responses to GET/POST requests

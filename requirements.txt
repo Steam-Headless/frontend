@@ -6,3 +6,4 @@ redis
 
 # SHUI requirements
 python-fasthtml
+pillow
