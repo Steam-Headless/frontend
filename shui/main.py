@@ -346,7 +346,8 @@ def get():
                   Div(
                     Div(
                         # NOTE Start of the landing page section
-                        Iframe(src='http://192.168.100.131:8083/web/index.html?autoconnect=true', width='100%', height='100%', style='border:none', allowfullscreen=''),
+                        Iframe(id='landing', src='', width='100%', height='100%', style='border:none', allowfullscreen=''),
+                        Script('myIP = window.location.hostname; document.getElementById("landing").src = "http://" + myIP + ":8083/web/index.html?autoconnect=true";'),
                         id="current-menu-content", style="width: 100%; height: 100vh;"),
                         # NOTE End of landing page section
                     cls='col-12'
