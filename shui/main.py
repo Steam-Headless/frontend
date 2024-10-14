@@ -345,11 +345,10 @@ def get():
                 Div(
                   Div(
                     Div(
-                    # TODO Make a nice landing page with a nice logo and some info about the project
-                    H1("Welcome to Steam Headless!", cls="py-5 mx-2"),
-                    P("Select an Item to get started", cls="mx-2"),
-                    id="current-menu-content", style="width: 100%; height: 100vh;"),
-                    # NOTE End of landing page section
+                        # NOTE Start of the landing page section
+                        Iframe(src='http://192.168.100.131:8083/web/index.html?autoconnect=true', width='100%', height='100%', style='border:none', allowfullscreen=''),
+                        id="current-menu-content", style="width: 100%; height: 100vh;"),
+                        # NOTE End of landing page section
                     cls='col-12'
                 ), cls='row gx-0'),
                 cls='col gx-0 overflow-hidden'),
@@ -376,7 +375,7 @@ def menucontent(menu: str, myIP: str):
 @rt('/reload')
 def post():
     get_installed_steam_games('/mnt/games/SteamLibrary/steamapps')
-    return Script('''window.location.href = "/"''')
+    return Script('window.location.href = "/"')
 
 # The route to remove a game from sunshine
 @rt('/remove/{game_id}')
