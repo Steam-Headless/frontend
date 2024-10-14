@@ -70,7 +70,7 @@ def SidebarItem(text, hx_get, hx_vals, hx_target, **kwargs):
         I(cls=f'bi bi-{text}'),
         Span(text),
         hx_get=hx_get, hx_vals=hx_vals, hx_target=hx_target,
-        data_bs_parent='#sidebar', role='button',
+        data_bs_parent='#sidebar', data_bs_dismiss='offcanvas', role='button',
         cls='list-group-item border-end-0 d-inline-block text-truncate',
         **kwargs)
 
@@ -82,7 +82,7 @@ def Sidebar(sidebar_items, hx_get, hx_vals, hx_target):
             cls='list-group border-0 rounded-0 text-sm-start min-vh-100'
         ),
         id='sidebar',
-        cls='collapse collapse-horizontal show border-end')
+        cls='offcanvas offcanvas-start')
 
 # Add remove buttons to the sidebar
 sidebar_items = ('Desktop', 'Sunshine', 'Installers', 'App Manager', 'Logs', 'FAQ')
@@ -135,7 +135,7 @@ def installer_content():
 def sunshine_appmanager_content():
     return Div(
         H1("Sunshine Manager"),
-        cls='container py-5'
+        cls='container-fluid py-5'
     ), Div(
         Button("Reload Steam Games",
             hx_post="/reload",
@@ -154,7 +154,12 @@ def sunshine_appmanager_content():
             }
         '''),
         Input(id="filter-games", onkeyup="filterList()", placeholder="Type to filter list", cls='container-fluid form-control'),
-        Div (
+        # Div(
+        #     Input(id="label", type="text", placeholder="Global Run Command:", readonly="", cls=''),
+        #     Input(id="sunshine-pre", type="text", placeholder="/usr/bin/sunshine-run", cls='col-auto'),
+        #     cls='inline-flex'
+        # ),
+        Div(
             Ul(*gamedb(order_by='-game_added'), id='game-ul', cls='list-group'),
             cls='row py-2'
         )
@@ -179,7 +184,7 @@ app,rt,gamedb,Game = fast_app('/home/default/.cache/gamedb.db',
 )
 
 # Function to populate the sqlite db with steam game data
-# TODO load the sqlite db into games and add/remove games from the db based on steam directory changes
+# TODO remove uninstalled games from the gamedb.db file
 def get_installed_steam_games(steam_dir):
     for filename in os.listdir(steam_dir):
         if filename.endswith('.acf'):
@@ -203,7 +208,7 @@ def get_installed_steam_games(steam_dir):
                             ))
 
 # Functions to manipulate the sunshine apps.json file
-# TODO change functionality to add/remove apps from the sunshine config file using the appid
+# TODO make this more robust and add error handling
 def add_sunshine_app(**kwargs):
     app_name = kwargs['app_name']
     app_id = kwargs['app_id']
@@ -236,11 +241,12 @@ def add_sunshine_app(**kwargs):
 
     data['apps'].append(new_app)
 
-    fetch_and_resize_poster(app_id, app_name)
+    #fetch_and_resize_poster(app_id, app_name)
 
     with open(conf_loc, 'w') as f:
         json.dump(data, f, indent=4)
 
+# Function to delete a Sunshine App from the apps.json file
 def del_sunshine_app(**kwargs):
     app_name = kwargs['app_name']
     app_id = kwargs['app_id']
@@ -334,7 +340,7 @@ def get():
                 cls='col-auto px-0'),
             Main(
                 A(I(cls='bi bi-controller bi-lg py-2 p-1'),
-                  href='#', data_bs_target='#sidebar', data_bs_toggle='collapse', aria_expanded='false', aria_controls='sidebar',
+                  href='#', data_bs_target='#sidebar', data_bs_toggle='offcanvas', aria_expanded='false', aria_controls='sidebar',
                   cls='border rounded-3 p-1 text-decoration-none bg-dark text-white bg-opacity-25 position-fixed my-2 mx-2'),
                 Div(
                   Div(
