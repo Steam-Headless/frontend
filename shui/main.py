@@ -20,7 +20,7 @@ css = Style("""
 }
 .bi-Sunshine {
 }
-.bi-Shell {
+.bi-Settings {
 }
 .bi-Installers {
 }
@@ -40,10 +40,7 @@ css = Style("""
 def render(game):
     return Li(
         Div(
-            Strong(
-                game.game_name,
-                cls='col-auto',
-            ),
+            Strong(game.game_name, cls='col-auto'),
             Div(
                 Button(
                     'Add To Sunshine', hx_get=f'/add/{game.game_id}', target_id=f'appid-{game.game_id}',
@@ -56,12 +53,8 @@ def render(game):
                 Strong(
                     I(cls='bi bi-toggle-on') if game.game_added else I(cls='bi bi-toggle-off'),
                     id=f'appid-{game.game_id}'
-                ),
-                cls='col d-flex justify-content-end'
-            ),
-            cls='row'
-        ),
-        cls='list-group-item',
+                ), cls='col d-flex justify-content-end'
+            ), cls='row'), cls='list-group-item'
     )
 
 # Define the sidebar items
@@ -85,7 +78,7 @@ def Sidebar(sidebar_items, hx_get, hx_vals, hx_target):
         cls='offcanvas offcanvas-start')
 
 # Add remove buttons to the sidebar
-sidebar_items = ('Desktop', 'Sunshine', 'Installers', 'App Manager', 'Logs', 'FAQ')
+sidebar_items = ('Desktop', 'Sunshine', 'Installers', 'App Manager', 'Logs', 'FAQ', 'Settings')
 
 # The Log Page content is defined here
 def logs_content():
@@ -129,6 +122,33 @@ def installer_content():
     return Div(
         H1("Installers", cls="py-5"),
         cls="container"
+    )
+
+# The settings page content is defined here
+# TODO lots and lots
+def settings_content():
+    return Div(
+        Ul(
+            Li(
+                Span("Steam Directory"),
+                Input(
+                    type="text", 
+                    value="/mnt/games/SteamLibrary/steamapps", 
+                    placeholder="/mnt/games/SteamLibrary/steamapps"
+                ), cls='list-group-item'
+            ),
+            Li(
+                Div(
+                    Input("Enable Poster Generation", type="checkbox")
+                ),
+                Div(
+                    Button("Download all Posters", cls='btn btn-primary me-2')
+                ),
+                Div(
+                    Button("Delete Posters", cls='btn btn-danger me-2')
+                )
+            ), cls='list-group-item'
+        ), cls="container py-5"
     )
 
 # Sunshine App Manager content is defined here
@@ -361,12 +381,13 @@ def get():
 def menucontent(menu: str, myIP: str):
 
     switch_cases = {
-        'Desktop': f'<iframe id="desktopUI" src="http://{myIP}:8083/web/index.html?autoconnect=true" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
+        'Desktop': f'<iframe id="desktopUI" src="http://{myIP}:8083/web/index.html?autoconnect=true" width="100%" height="100%" style="border:none;" allowfullscreen></iframe>',
         'Sunshine': f'<iframe id="sunshineUI" src="https://{myIP}:47990" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
         #'Installers':  installer_content(),
         'App Manager': sunshine_appmanager_content(),
         'Logs': logs_content(),
-        'FAQ': faq_content()
+        'FAQ': faq_content(),
+        'Settings': settings_content()
     }
 
     return switch_cases.get(menu, Div("No content available", cls='py-5'))
