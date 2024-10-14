@@ -4,18 +4,20 @@
 # File Created: Sunday, 17th September 2023 5:10:38 pm
 # Author: Josh.5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Friday, 22nd September 2023 3:13:18 pm
-# Modified By: Josh.5 (jsunnex@gmail.com)
+# Last Modified: Saturday, 12th October 2024 11:59:26 am
+# Modified By: Josh5 (jsunnex@gmail.com)
 ###
 
 NAME="$(basename $0)"
 REAL_NAME="$(readlink -f $0)"
 HERE="$(cd "$(dirname "$REAL_NAME")" && pwd)"
 WEB_PORT="8083"
+SHUI_PORT="8082"        # (SHUI uvicorn port)
 WEB_ROOT=${HERE}/../
 REMOTE_HOST="localhost"
 VNC_PORT="32036"        # (VNC service port)
 AUDIO_PORT="32039"      # (pulseaudio stream port)
+shui_pid=""
 main_proxy_pid=""
 audio_proxy_pid=""
 
@@ -38,6 +40,11 @@ cleanup() {
     if [ -n "${audio_proxy_pid}" ]; then
         echo "Terminating audio WebSockets proxy (${audio_proxy_pid})"
         kill ${audio_proxy_pid}
+    fi
+    # Stop SHUI
+    if [ -n "${shui_pid}" ]; then
+        echo "Terminating fastHTML uvicorn (${shui_pid})"
+        kill ${shui_pid}
     fi
 }
 
@@ -76,6 +83,11 @@ else
 fi
 
 trap "cleanup" TERM QUIT INT EXIT
+
+# Source venv
+if [ -f "${WEB_ROOT:?}"/venv/bin/activate ]; then
+    source "${WEB_ROOT:?}"/venv/bin/activate
+fi
 
 # try to find websockify (prefer local, try global, then download local)
 if [[ -d ${HERE}/websockify ]]; then
@@ -148,6 +160,17 @@ if [ -z "$main_proxy_pid" ] || ! ps -eo pid= | grep -w "$main_proxy_pid" > /dev/
     exit 1
 fi
 
+# Run FastHTML server
+echo "Starting SHUI fastHTML page on port ${SHUI_PORT:?}"
+python3 ${WEB_ROOT:?}/shui/main.py &
+shui_pid="$!"
+sleep 1
+if [ -z "$shui_pid" ] || ! ps -eo pid= | grep -w "$shui_pid" > /dev/null; then
+    shui_pid=
+    echo "Failed to start FastHTML uvicorn"
+    exit 1
+fi
+
 # Run audio proxy
 echo "Starting audio socket proxy on port ${WEB_PORT:?}"
 ${WEBSOCKIFY} ${PORT_AUDIO_WEBSOCKET:?} ${REMOTE_HOST:?}:${AUDIO_PORT:?} &
@@ -164,5 +187,6 @@ echo -e "    http://$(hostname):${WEB_PORT:?}/web/vnc.html?host=$(hostname)&port
 
 echo -e "Press Ctrl-C to exit\n\n"
 
+wait ${shui_pid}
 wait ${main_proxy_pid}
 wait ${audio_proxy_pid}
