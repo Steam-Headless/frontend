@@ -57,6 +57,22 @@ def render(game):
             ), cls='row'), cls='list-group-item'
     )
 
+# Setup toast notification system
+# def notify(message, hx_target, duration=3000, **kwargs):
+#     return Div(
+#         Div(
+#             Div(
+#                 Strong('Toast Header Section', cls='me-auto'),
+#                 Button('Close', cls='btn-close', data_bs_dismiss='toast'),
+#                 cls='toast-header'
+#             ),
+#             Div(
+#                 P(message),
+#                 cls='toast-body'
+#             ), id='liveToast', cls='toast', role='alert'
+#         ), cls='toast-container position-fixed bottom-0 end-0 p-3', style='z-index: 11', data_bs_delay=duration, data_bs_autohide='true'
+#     ), Script('var toastEl = document.getElementById("liveToast"); var toast = new bootstrap.Toast(toastEl); toast.show();')
+
 # Define the sidebar items
 def SidebarItem(text, hx_get, hx_vals, hx_target, **kwargs):
     return Div(
@@ -154,8 +170,11 @@ def settings_content():
 # Sunshine App Manager content is defined here
 def sunshine_appmanager_content():
     return Div(
-        H1("Sunshine Manager"),
-        cls='container-fluid py-5'
+        H2("Sunshine Manager", cls='col-10'),
+        Button("Restart Sunshine",
+            hx_post="/sunshine-restart",
+            cls='col d-flex btn btn-danger'
+        ), cls='container-fluid row py-5'
     ), Div(
         Button("Reload Steam Games",
             hx_post="/reload",
@@ -344,7 +363,7 @@ def fetch_and_resize_poster(game_id, game_name, save_directory='/home/default/.l
                     
                     # Paste the resized poster onto the black background
                     image.paste(resized_poster, (x_offset, y_offset))
-        #TODO else use steamgridb here if api fails???
+        #TODO else use steamgridb here if api returns no image?
                 
         # Save the final image appid.png
         image.save(f'{save_directory}/{game_id}.png')
@@ -367,12 +386,18 @@ def get():
                     Div(
                         # NOTE Start of the landing page section
                         Iframe(id='landing', src='', width='100%', height='100%', style='border:none', allowfullscreen=''),
-                        Script('myIP = window.location.hostname; document.getElementById("landing").src = "http://" + myIP + ":8083/web/index.html?autoconnect=true";'),
+                        Script('document.getElementById("landing").src = "http://" + window.location.hostname + ":8083/web/index.html?autoconnect=true";'),
                         id="current-menu-content", style="width: 100%; height: 100vh;"),
                         # NOTE End of landing page section
                     cls='col-12'
                 ), cls='row gx-0'),
                 cls='col gx-0 overflow-hidden'),
+            Div(
+                Div(
+                    Div(cls='toast-header'),
+                    Div(cls='toast-body'), id='liveToast', cls='toast', role='alert'
+                ), id='toast-target', cls='toast-container position-fixed bottom-0 end-0 p-3', style='z-index: 11'
+            ),
             cls='row flex-nowrap'),
         cls='container-fluid')
 
@@ -398,6 +423,15 @@ def menucontent(menu: str, myIP: str):
 def post():
     get_installed_steam_games('/mnt/games/SteamLibrary/steamapps')
     return Script('window.location.href = "/"')
+
+# Function to restart sunshine
+# TODO implement the actual restart logic & have the button show the status
+# @rt('/sunshine-restart')
+# def post():
+#     notify('Test', hx_target='#toast-target', hxswap='innerHTML')
+#     #curl -X POST https://<your_server_ip>:47990/api/restart -H "Authorization: Bearer <your_api_token>"
+#     #curl -X GET https://<your_server_ip>:47990/api/status -H "Authorization: Bearer <your_api_token>"
+    
 
 # The route to remove a game from sunshine
 @rt('/remove/{game_id}')
