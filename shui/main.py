@@ -223,8 +223,9 @@ app,rt,gamedb,Game = fast_app('/home/default/.cache/gamedb.db',
 )
 
 # Function to populate the sqlite db with steam game data
-# TODO remove uninstalled games from the gamedb.db file
 def get_installed_steam_games(steam_dir):
+    found_appids = set()  # Use a set to store unique appids found
+
     for filename in os.listdir(steam_dir):
         if filename.endswith('.acf'):
             acf_file = os.path.join(steam_dir, filename)
@@ -237,14 +238,18 @@ def get_installed_steam_games(steam_dir):
                     game_name_match = re.search(r'"name"\s+"([^"]+)"', acf_content)
                     if game_name_match:
                         game_name = game_name_match.group(1)
+                        found_appids.add(appid)  # Add appid to the set of found appids
                         if appid in gamedb:
                             continue
                         else:
-                            gamedb.insert(Game(
+                            gamedb.append(Game(
                                 game_id=appid,
                                 game_name=game_name,
                                 game_added=False
                             ))
+
+    # Remove any appids from gamedb that were not found in the ACF files
+    gamedb[:] = [game for game in gamedb if game.game_id in found_appids]
 
 # Functions to manipulate the sunshine apps.json file
 # TODO make this more robust and add error handling
