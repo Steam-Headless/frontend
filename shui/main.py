@@ -300,48 +300,48 @@ def del_sunshine_app(app_name, app_id, conf_loc='/home/default/.config/sunshine/
         json.dump(data, f, indent=4)
 
 # Function to fetch and resize Steam game posters
-# TODO switch to streamgriddb? can only find landscape images from steam
+# TODO Center text on the image if no header image is found
 def fetch_and_resize_poster(game_id, game_name, save_directory='/home/default/.local/share/posters'):
     # Create the directory if it doesn't exist
     if not os.path.exists(save_directory):
         os.makedirs(save_directory)
     
-    # Create a blank image with black background
-    image = Image.new('RGB', (600, 800), 'black')
-    draw = ImageDraw.Draw(image)
-
-    # Define the font and text size
-    # Draw a Title to show that it is steam-headless managed
-    font = ImageFont.truetype("arial.ttf", 40)
-    draw.text((150, 20), "Steam Headless", fill='white', font=font)
-
-    # Draw tha game name at the footer
-    text_width = draw.textlength(str(game_name), font=font)
-    name_x_offset = (image.width - text_width) / 2
-
-    # Draw the text with wrapping if necessary
-    lines = []
-    words = game_name.split(' ')
-    line = ''
-    for word in words:
-        test_line = line + word + ' '
-        test_width = draw.textlength(test_line, font=font)
-        if test_width <= image.width:
-            line = test_line
-        else:
-            lines.append(line)
-            line = word + ' '
-    lines.append(line)
-
-    # Calculate the y-coordinate for each line of text
-    name_y_offset = 600  # Starting y-coordinate
-    for i, line in enumerate(lines):
-        name_x_offset = (image.width - draw.textlength(str(line), font=font)) / 2
-        draw.text((name_x_offset, name_y_offset), line, fill='white', font=font)
-        name_y_offset += 40
-
     # Check if the image already exists to avoid overwriting
     if not os.path.exists(os.path.join(save_directory, f'{game_id}.png')):
+        # Create a blank image with black background
+        image = Image.new('RGB', (600, 800), 'black')
+        draw = ImageDraw.Draw(image)
+
+        # Define the font and text size
+        # Draw a Title to show that it is steam-headless managed
+        font = ImageFont.truetype("arial.ttf", 40)
+        draw.text((150, 20), "Steam Headless", fill='white', font=font)
+
+        # Draw tha game name at the footer
+        text_width = draw.textlength(str(game_name), font=font)
+        name_x_offset = (image.width - text_width) / 2
+
+        # Draw the text with wrapping if necessary
+        lines = []
+        words = game_name.split(' ')
+        line = ''
+        for word in words:
+            test_line = line + word + ' '
+            test_width = draw.textlength(test_line, font=font)
+            if test_width <= image.width:
+                line = test_line
+            else:
+                lines.append(line)
+                line = word + ' '
+        lines.append(line)
+
+        # Calculate the y-coordinate for each line of text
+        name_y_offset = 600  # Starting y-coordinate
+        for i, line in enumerate(lines):
+            name_x_offset = (image.width - draw.textlength(str(line), font=font)) / 2
+            draw.text((name_x_offset, name_y_offset), line, fill='white', font=font)
+            name_y_offset += 40
+
         # Fetch the game poster from Steam API
         url = f'https://store.steampowered.com/api/appdetails?appids={game_id}'
         response = requests.get(url)
