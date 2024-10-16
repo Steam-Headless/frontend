@@ -253,10 +253,7 @@ def get_installed_steam_games(steam_dir):
 
 # Functions to manipulate the sunshine apps.json file
 # TODO make this more robust and add error handling
-def add_sunshine_app(**kwargs):
-    app_name = kwargs['app_name']
-    app_id = kwargs['app_id']
-    conf_loc = kwargs['conf_loc']
+def add_sunshine_app(app_name, app_id, conf_loc='/home/default/.config/sunshine/apps.json'):
 
     with open(conf_loc, 'r') as f:
         data = json.load(f)
@@ -291,10 +288,8 @@ def add_sunshine_app(**kwargs):
         json.dump(data, f, indent=4)
 
 # Function to delete a Sunshine App from the apps.json file
-def del_sunshine_app(**kwargs):
-    app_name = kwargs['app_name']
-    app_id = kwargs['app_id']
-    conf_loc = kwargs['conf_loc']
+def del_sunshine_app(app_name, app_id, conf_loc='/home/default/.config/sunshine/apps.json'):
+
     with open(conf_loc, 'r', encoding='utf-8') as f:
         data = json.load(f) 
     
@@ -444,7 +439,7 @@ def get(game_id:int):
     game = gamedb[game_id]
     game.game_added = False
     gamedb.update(game)
-    del_sunshine_app(app_name=game.game_name, app_id=game.game_id, conf_loc='/home/default/.config/sunshine/apps.json')
+    del_sunshine_app(game.game_name, game.game_id)
     return I(hxswap="innerHTML", cls='bi bi-toggle-off')
 
 # The route to add a game to sunshine
@@ -453,7 +448,7 @@ def get(game_id:int):
     game = gamedb[game_id]
     game.game_added = True
     gamedb.update(game)
-    add_sunshine_app(app_name=game.game_name, app_id=game.game_id, conf_loc='/home/default/.config/sunshine/apps.json')
+    add_sunshine_app(game.game_name, game.game_id)
     return I(hxswap="innerHTML", cls='bi bi-toggle-on')
 
 # Run the app
