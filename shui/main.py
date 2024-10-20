@@ -297,7 +297,7 @@ def add_sunshine_app(app_name, app_id, conf_loc='/home/default/.config/sunshine/
 
     data['apps'].append(new_app)
 
-    #fetch_and_resize_poster(app_id, app_name)
+    fetch_and_resize_poster(app_id, app_name)
 
     with open(conf_loc, 'w') as f:
         json.dump(data, f, indent=4)
@@ -459,7 +459,7 @@ def get(game_id:int):
     game.game_added = True
     gamedb.update(game)
     add_sunshine_app(game.game_name, game.game_id)
-    return I(hxswap="innerHTML", cls='bi bi-toggle-on')
+    return notify(f'Adding {game.game_name}', 1000), I(hxswap="innerHTML", cls='bi bi-toggle-on')
 
 # Run the app
 # Serve the application at port 8082
