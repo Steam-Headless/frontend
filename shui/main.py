@@ -64,11 +64,11 @@ settingdb = db.create(Setting, pk='id')
 #
 
 # Setup toast notification system
-def notify(message, duration=1000, **kwargs):
+def notify(header, message, duration=1000, **kwargs):
     return Div(
         Div(
             Div(
-                Strong('Toast Header Section', cls='me-auto'),
+                Strong(header, cls='me-auto'),
                 Button('Close', cls='btn-close', data_bs_dismiss='toast'),
                 cls='toast-header'
             ),
@@ -179,6 +179,7 @@ def sunshine_appmanager_content():
         H2("Sunshine Manager", cls='col-10'),
         Button("Restart Sunshine",
             hx_post="/sunshine-restart",
+            hx_vals='js:{"myIP": window.location.hostname}',
             hx_target="#toastTarget",
             cls='col d-flex btn btn-danger'
         ), cls='container-fluid row py-5'
@@ -437,8 +438,9 @@ def post():
 # Function to restart sunshine
 # TODO implement the actual restart logic & have the button show the status
 @rt('/sunshine-restart')
-def post():
-     return notify("Restarting Sunshine", 1000)
+def post(myIP: str):
+    #curl -X POST f'https://{myIP}:47990/api/restart'
+    return notify("Sunshine Manager", "Restarting Sunshine", 1000)
 #     #curl -X POST https://<your_server_ip>:47990/api/restart -H "Authorization: Bearer <your_api_token>"
 #     #curl -X GET https://<your_server_ip>:47990/api/status -H "Authorization: Bearer <your_api_token>"
     
@@ -459,7 +461,7 @@ def get(game_id:int):
     game.game_added = True
     gamedb.update(game)
     add_sunshine_app(game.game_name, game.game_id)
-    return notify(f'Adding {game.game_name}', 1000), I(hxswap="innerHTML", cls='bi bi-toggle-on')
+    return I(hxswap="innerHTML", cls='bi bi-toggle-on')
 
 # Run the app
 # Serve the application at port 8082
