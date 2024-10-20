@@ -233,18 +233,36 @@ def get_installed_steam_games(steam_dir):
 
                 if appid_match:
                     appid = int(appid_match.group(1))
-                    game_name_match = re.search(r'"name"\s+"([^"]+)"', acf_content)
-                    if game_name_match:
-                        game_name = game_name_match.group(1)
-                        found_appids.add(appid)  # Add appid to the set of found appids
-                        if appid in gamedb:
-                            continue
-                        else:
-                            gamedb.insert(Game(
-                                game_id=appid,
-                                game_name=game_name,
-                                game_added=False
-                            ))
+                    # Get the parent in case its a DLC
+                    parent_appid_match = re.search(r'"parentappid"\s+"(\d+)"', acf_content)
+                    if parent_appid_match:
+                        parent_appid = int(parent_appid_match.group(1))
+                        found_appids.add(parent_appid) 
+                        
+                        # Check if the parent game already exists in the database
+                        if parent_appid not in gamedb:
+                            game_name_match = re.search(r'"name"\s+"([^"]+)"', acf_content)
+                            if game_name_match:
+                                game_name = game_name_match.group(1)
+                                gamedb.insert(Game(
+                                    game_id=parent_appid,
+                                    game_name=game_name,
+                                    game_added=False
+                                ))
+                    else:
+                        # If no parent appid
+                        found_appids.add(appid) 
+                        
+                        # Check if the game already exists in the database
+                        if appid not in gamedb:
+                            game_name_match = re.search(r'"name"\s+"([^"]+)"', acf_content)
+                            if game_name_match:
+                                game_name = game_name_match.group(1)
+                                gamedb.insert(Game(
+                                    game_id=appid,
+                                    game_name=game_name,
+                                    game_added=False
+                                ))
     # TODO Remove any appids from gamedb that were not found in the ACF files
     
 
