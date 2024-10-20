@@ -18,7 +18,7 @@ bootstrap_links = [
 css = Style()
 
 # Define the database and create tables
-db = database('/home/default/.cache/gamedb.db')
+db = database('/home/default/.cache/shui.db')
 
 class Game:
     game_id:int; game_name:str; game_added:bool
@@ -64,20 +64,20 @@ settingdb = db.create(Setting, pk='id')
 #
 
 # Setup toast notification system
-# def notify(message, hx_target, duration=3000, **kwargs):
-#     return Div(
-#         Div(
-#             Div(
-#                 Strong('Toast Header Section', cls='me-auto'),
-#                 Button('Close', cls='btn-close', data_bs_dismiss='toast'),
-#                 cls='toast-header'
-#             ),
-#             Div(
-#                 P(message),
-#                 cls='toast-body'
-#             ), id='liveToast', cls='toast', role='alert'
-#         ), cls='toast-container position-fixed bottom-0 end-0 p-3', style='z-index: 11', data_bs_delay=duration, data_bs_autohide='true'
-#     ), Script('var toastEl = document.getElementById("liveToast"); var toast = new bootstrap.Toast(toastEl); toast.show();')
+def notify(message, duration=1000, **kwargs):
+    return Div(
+        Div(
+            Div(
+                Strong('Toast Header Section', cls='me-auto'),
+                Button('Close', cls='btn-close', data_bs_dismiss='toast'),
+                cls='toast-header'
+            ),
+            Div(
+                P(message),
+                cls='toast-body'
+            ), id='liveToast', cls='toast', role='alert'
+        ), cls='toast-container position-fixed bottom-0 end-0 p-3', style='z-index: 11', data_bs_delay=duration, data_bs_autohide='true'
+    ), Script('var toastEl = document.getElementById("liveToast"); var toast = new bootstrap.Toast(toastEl); toast.show();')
 
 # Define the sidebar items
 def SidebarItem(text, hx_get, hx_vals, hx_target, **kwargs):
@@ -179,6 +179,7 @@ def sunshine_appmanager_content():
         H2("Sunshine Manager", cls='col-10'),
         Button("Restart Sunshine",
             hx_post="/sunshine-restart",
+            hx_target="#toastTarget",
             cls='col d-flex btn btn-danger'
         ), cls='container-fluid row py-5'
     ), Div(
@@ -239,7 +240,7 @@ def get_installed_steam_games(steam_dir):
                         if appid in gamedb:
                             continue
                         else:
-                            gamedb.append(Game(
+                            gamedb.insert(Game(
                                 game_id=appid,
                                 game_name=game_name,
                                 game_added=False
@@ -388,13 +389,8 @@ def get():
                     cls='col-12'
                 ), cls='row gx-0'),
                 cls='col gx-0 overflow-hidden'),
-            Div(
-                Div(
-                    Div(cls='toast-header'),
-                    Div(cls='toast-body'), id='liveToast', cls='toast', role='alert'
-                ), id='toast-target', cls='toast-container position-fixed bottom-0 end-0 p-3', style='z-index: 11'
-            ),
             cls='row flex-nowrap'),
+            Div(id='toastTarget'),
         cls='container-fluid')
 
 # The route for the menu content, which is dynamically loaded via htmx into #current-menu-content
@@ -422,9 +418,9 @@ def post():
 
 # Function to restart sunshine
 # TODO implement the actual restart logic & have the button show the status
-# @rt('/sunshine-restart')
-# def post():
-#     notify('Test', hx_target='#toast-target', hxswap='innerHTML')
+@rt('/sunshine-restart')
+def post():
+     return notify("Restarting Sunshine", 1000)
 #     #curl -X POST https://<your_server_ip>:47990/api/restart -H "Authorization: Bearer <your_api_token>"
 #     #curl -X GET https://<your_server_ip>:47990/api/status -H "Authorization: Bearer <your_api_token>"
     
