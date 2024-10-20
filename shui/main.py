@@ -15,54 +15,69 @@ bootstrap_links = [
 
 # Attempt to avoid needing to use a .css file. Insert overrides here if needed
 # Placeholders for menu elements
-css = Style("""
-.bi-Desktop {
-}
-.bi-Sunshine {
-}
-.bi-Shell {
-}
-.bi-Installers {
-}
-.bi-AppManager {
-}
-.bi-Logs {
-}
-.bi-FAQ {
-}
-""")
+css = Style()
+
+# Define the database and create tables
+db = database('/home/default/.cache/shui.db')
+
+class Game:
+    game_id:int; game_name:str; game_added:bool
+    def __ft__(self):
+        return Li(
+            Div(
+                Strong(self.game_name, cls='col-auto'),
+                Div(
+                    Button(
+                        'Add To Sunshine', hx_get=f'/add/{self.game_id}', target_id=f'appid-{self.game_id}',
+                        cls='btn btn-primary me-2'
+                    ),
+                    Button(
+                        'Remove', hx_get=f'/remove/{self.game_id}', target_id=f'appid-{self.game_id}',
+                        cls='btn btn-danger me-2'
+                    ),
+                    Strong(
+                        I(cls='bi bi-toggle-on') if self.game_added else I(cls='bi bi-toggle-off'),
+                        id=f'appid-{self.game_id}'
+                    ), cls='col d-flex justify-content-end'
+                ), cls='row'
+            ), cls='list-group-item'
+        )
+class Setting:
+    id:int; key:str; value:str
+    def __ft__(self):
+        return Li(
+            Div(
+                Strong(self.key, cls='col-auto'),
+                Div(
+                    Input(
+                        self.value,
+                        cls='col d-flex justify-content-end'
+                    )
+                ), cls='row'
+            ), cls='list-group-item'
+        )
+
+gamedb = db.create(Game, pk='game_id')
+settingdb = db.create(Setting, pk='id')
 
 # Page Element Contents and Structure
 #
 
-## Define how to desiplay/render items for the gamedb default table
-## Todo fix rendering to display the items in a more user friendly way
-def render(game):
-    return Li(
+# Setup toast notification system
+def notify(message, duration=1000, **kwargs):
+    return Div(
         Div(
-            Strong(
-                game.game_name,
-                cls='col-auto',
+            Div(
+                Strong('Toast Header Section', cls='me-auto'),
+                Button('Close', cls='btn-close', data_bs_dismiss='toast'),
+                cls='toast-header'
             ),
             Div(
-                Button(
-                    'Add To Sunshine', hx_get=f'/add/{game.game_id}', target_id=f'appid-{game.game_id}',
-                    cls='btn btn-primary me-2'
-                ),
-                Button(
-                    'Remove', hx_get=f'/remove/{game.game_id}', target_id=f'appid-{game.game_id}',
-                    cls='btn btn-danger me-2'
-                ),
-                Strong(
-                    I(cls='bi bi-toggle-on') if game.game_added else I(cls='bi bi-toggle-off'),
-                    id=f'appid-{game.game_id}'
-                ),
-                cls='col d-flex justify-content-end'
-            ),
-            cls='row'
-        ),
-        cls='list-group-item',
-    )
+                P(message),
+                cls='toast-body'
+            ), id='liveToast', cls='toast', role='alert'
+        ), cls='toast-container position-fixed bottom-0 end-0 p-3', style='z-index: 11', data_bs_delay=duration, data_bs_autohide='true'
+    ), Script('var toastEl = document.getElementById("liveToast"); var toast = new bootstrap.Toast(toastEl); toast.show();')
 
 # Define the sidebar items
 def SidebarItem(text, hx_get, hx_vals, hx_target, **kwargs):
@@ -85,7 +100,7 @@ def Sidebar(sidebar_items, hx_get, hx_vals, hx_target):
         cls='offcanvas offcanvas-start')
 
 # Add remove buttons to the sidebar
-sidebar_items = ('Desktop', 'Sunshine', 'Installers', 'App Manager', 'Logs', 'FAQ')
+sidebar_items = ('Desktop', 'Sunshine', 'Installers', 'App Manager', 'Logs', 'FAQ', 'Settings')
 
 # The Log Page content is defined here
 def logs_content():
@@ -131,11 +146,42 @@ def installer_content():
         cls="container"
     )
 
+# The settings page content is defined here
+# TODO lots and lots
+def settings_content():
+    return Div(
+        Ul(
+            Li(
+                Span("Steam Directory"),
+                Input(
+                    type="text", 
+                    value="/mnt/games/SteamLibrary/steamapps", 
+                    placeholder="/mnt/games/SteamLibrary/steamapps"
+                ), cls='list-group-item'
+            ),
+            Li(
+                Div(
+                    Input("Enable Poster Generation", type="checkbox")
+                ),
+                Div(
+                    Button("Download all Posters", cls='btn btn-primary me-2')
+                ),
+                Div(
+                    Button("Delete Posters", cls='btn btn-danger me-2')
+                )
+            ), cls='list-group-item'
+        ), cls="container py-5"
+    )
+
 # Sunshine App Manager content is defined here
 def sunshine_appmanager_content():
     return Div(
-        H1("Sunshine Manager"),
-        cls='container-fluid py-5'
+        H2("Sunshine Manager", cls='col-10'),
+        Button("Restart Sunshine",
+            hx_post="/sunshine-restart",
+            hx_target="#toastTarget",
+            cls='col d-flex btn btn-danger'
+        ), cls='container-fluid row py-5'
     ), Div(
         Button("Reload Steam Games",
             hx_post="/reload",
@@ -167,25 +213,17 @@ def sunshine_appmanager_content():
 
 # Invokation of the fast_app function
 # Define the main fastHTML app
-app,rt,gamedb,Game = fast_app('/home/default/.cache/gamedb.db',
-    render=render,
-    game_id=int,
-    game_name=str,
-    game_added=bool,
-    pk='game_id',
+app,rt = fast_app(
     pico=False, # Avoid conflicts between bootstrap styling and the built in picolink
     hdrs=(
-        #Meta(http_equiv='referrer', content='no-referrer'),
-        #Meta(http_equiv='Content-Security-Policy', content="frame-src 'self' *"),
-        #Meta(http_equiv='Content-Security-Policy', content="upgrade-insecure-requests"),
-        #Meta(http_equiv='Access-Control-Allow-Origin', content="*"),
         bootstrap_links, 
         css)
 )
 
 # Function to populate the sqlite db with steam game data
-# TODO remove uninstalled games from the gamedb.db file
 def get_installed_steam_games(steam_dir):
+    found_appids = set()  # Use a set to store unique appids found
+
     for filename in os.listdir(steam_dir):
         if filename.endswith('.acf'):
             acf_file = os.path.join(steam_dir, filename)
@@ -198,6 +236,7 @@ def get_installed_steam_games(steam_dir):
                     game_name_match = re.search(r'"name"\s+"([^"]+)"', acf_content)
                     if game_name_match:
                         game_name = game_name_match.group(1)
+                        found_appids.add(appid)  # Add appid to the set of found appids
                         if appid in gamedb:
                             continue
                         else:
@@ -206,13 +245,12 @@ def get_installed_steam_games(steam_dir):
                                 game_name=game_name,
                                 game_added=False
                             ))
+    # TODO Remove any appids from gamedb that were not found in the ACF files
+    
 
 # Functions to manipulate the sunshine apps.json file
 # TODO make this more robust and add error handling
-def add_sunshine_app(**kwargs):
-    app_name = kwargs['app_name']
-    app_id = kwargs['app_id']
-    conf_loc = kwargs['conf_loc']
+def add_sunshine_app(app_name, app_id, conf_loc='/home/default/.config/sunshine/apps.json'):
 
     with open(conf_loc, 'r') as f:
         data = json.load(f)
@@ -247,10 +285,8 @@ def add_sunshine_app(**kwargs):
         json.dump(data, f, indent=4)
 
 # Function to delete a Sunshine App from the apps.json file
-def del_sunshine_app(**kwargs):
-    app_name = kwargs['app_name']
-    app_id = kwargs['app_id']
-    conf_loc = kwargs['conf_loc']
+def del_sunshine_app(app_name, app_id, conf_loc='/home/default/.config/sunshine/apps.json'):
+
     with open(conf_loc, 'r', encoding='utf-8') as f:
         data = json.load(f) 
     
@@ -261,48 +297,48 @@ def del_sunshine_app(**kwargs):
         json.dump(data, f, indent=4)
 
 # Function to fetch and resize Steam game posters
-# TODO switch to streamgriddb? can only find landscape images from steam
+# TODO Center text on the image if no header image is found
 def fetch_and_resize_poster(game_id, game_name, save_directory='/home/default/.local/share/posters'):
     # Create the directory if it doesn't exist
     if not os.path.exists(save_directory):
         os.makedirs(save_directory)
     
-    # Create a blank image with black background
-    image = Image.new('RGB', (600, 800), 'black')
-    draw = ImageDraw.Draw(image)
-
-    # Define the font and text size
-    # Draw a Title to show that it is steam-headless managed
-    font = ImageFont.truetype("arial.ttf", 40)
-    draw.text((150, 20), "Steam Headless", fill='white', font=font)
-
-    # Draw tha game name at the footer
-    text_width = draw.textlength(str(game_name), font=font)
-    name_x_offset = (image.width - text_width) / 2
-
-    # Draw the text with wrapping if necessary
-    lines = []
-    words = game_name.split(' ')
-    line = ''
-    for word in words:
-        test_line = line + word + ' '
-        test_width = draw.textlength(test_line, font=font)
-        if test_width <= image.width:
-            line = test_line
-        else:
-            lines.append(line)
-            line = word + ' '
-    lines.append(line)
-
-    # Calculate the y-coordinate for each line of text
-    name_y_offset = 600  # Starting y-coordinate
-    for i, line in enumerate(lines):
-        name_x_offset = (image.width - draw.textlength(str(line), font=font)) / 2
-        draw.text((name_x_offset, name_y_offset), line, fill='white', font=font)
-        name_y_offset += 40
-
     # Check if the image already exists to avoid overwriting
     if not os.path.exists(os.path.join(save_directory, f'{game_id}.png')):
+        # Create a blank image with black background
+        image = Image.new('RGB', (600, 800), 'black')
+        draw = ImageDraw.Draw(image)
+
+        # Define the font and text size
+        # Draw a Title to show that it is steam-headless managed
+        font = ImageFont.truetype("arial.ttf", 40)
+        draw.text((150, 20), "Steam Headless", fill='white', font=font)
+
+        # Draw tha game name at the footer
+        text_width = draw.textlength(str(game_name), font=font)
+        name_x_offset = (image.width - text_width) / 2
+
+        # Draw the text with wrapping if necessary
+        lines = []
+        words = game_name.split(' ')
+        line = ''
+        for word in words:
+            test_line = line + word + ' '
+            test_width = draw.textlength(test_line, font=font)
+            if test_width <= image.width:
+                line = test_line
+            else:
+                lines.append(line)
+                line = word + ' '
+        lines.append(line)
+
+        # Calculate the y-coordinate for each line of text
+        name_y_offset = 600  # Starting y-coordinate
+        for i, line in enumerate(lines):
+            name_x_offset = (image.width - draw.textlength(str(line), font=font)) / 2
+            draw.text((name_x_offset, name_y_offset), line, fill='white', font=font)
+            name_y_offset += 40
+
         # Fetch the game poster from Steam API
         url = f'https://store.steampowered.com/api/appdetails?appids={game_id}'
         response = requests.get(url)
@@ -324,7 +360,7 @@ def fetch_and_resize_poster(game_id, game_name, save_directory='/home/default/.l
                     
                     # Paste the resized poster onto the black background
                     image.paste(resized_poster, (x_offset, y_offset))
-        #TODO else use steamgridb here if api fails???
+        #TODO else use steamgridb here if api returns no image?
                 
         # Save the final image appid.png
         image.save(f'{save_directory}/{game_id}.png')
@@ -347,13 +383,14 @@ def get():
                     Div(
                         # NOTE Start of the landing page section
                         Iframe(id='landing', src='', width='100%', height='100%', style='border:none', allowfullscreen=''),
-                        Script('myIP = window.location.hostname; document.getElementById("landing").src = "http://" + myIP + ":8083/web/index.html?autoconnect=true";'),
+                        Script('document.getElementById("landing").src = "http://" + window.location.hostname + ":8083/web/index.html?autoconnect=true";'),
                         id="current-menu-content", style="width: 100%; height: 100vh;"),
                         # NOTE End of landing page section
                     cls='col-12'
                 ), cls='row gx-0'),
                 cls='col gx-0 overflow-hidden'),
             cls='row flex-nowrap'),
+            Div(id='toastTarget'),
         cls='container-fluid')
 
 # The route for the menu content, which is dynamically loaded via htmx into #current-menu-content
@@ -361,12 +398,13 @@ def get():
 def menucontent(menu: str, myIP: str):
 
     switch_cases = {
-        'Desktop': f'<iframe id="desktopUI" src="http://{myIP}:8083/web/index.html?autoconnect=true" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
+        'Desktop': f'<iframe id="desktopUI" src="http://{myIP}:8083/web/index.html?autoconnect=true" width="100%" height="100%" style="border:none;" allowfullscreen></iframe>',
         'Sunshine': f'<iframe id="sunshineUI" src="https://{myIP}:47990" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
         #'Installers':  installer_content(),
         'App Manager': sunshine_appmanager_content(),
         'Logs': logs_content(),
-        'FAQ': faq_content()
+        'FAQ': faq_content(),
+        'Settings': settings_content()
     }
 
     return switch_cases.get(menu, Div("No content available", cls='py-5'))
@@ -378,13 +416,22 @@ def post():
     get_installed_steam_games('/mnt/games/SteamLibrary/steamapps')
     return Script('window.location.href = "/"')
 
+# Function to restart sunshine
+# TODO implement the actual restart logic & have the button show the status
+@rt('/sunshine-restart')
+def post():
+     return notify("Restarting Sunshine", 1000)
+#     #curl -X POST https://<your_server_ip>:47990/api/restart -H "Authorization: Bearer <your_api_token>"
+#     #curl -X GET https://<your_server_ip>:47990/api/status -H "Authorization: Bearer <your_api_token>"
+    
+
 # The route to remove a game from sunshine
 @rt('/remove/{game_id}')
 def get(game_id:int):
     game = gamedb[game_id]
     game.game_added = False
     gamedb.update(game)
-    del_sunshine_app(app_name=game.game_name, app_id=game.game_id, conf_loc='/home/default/.config/sunshine/apps.json')
+    del_sunshine_app(game.game_name, game.game_id)
     return I(hxswap="innerHTML", cls='bi bi-toggle-off')
 
 # The route to add a game to sunshine
@@ -393,7 +440,7 @@ def get(game_id:int):
     game = gamedb[game_id]
     game.game_added = True
     gamedb.update(game)
-    add_sunshine_app(app_name=game.game_name, app_id=game.game_id, conf_loc='/home/default/.config/sunshine/apps.json')
+    add_sunshine_app(game.game_name, game.game_id)
     return I(hxswap="innerHTML", cls='bi bi-toggle-on')
 
 # Run the app
