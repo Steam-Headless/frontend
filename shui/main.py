@@ -15,47 +15,53 @@ bootstrap_links = [
 
 # Attempt to avoid needing to use a .css file. Insert overrides here if needed
 # Placeholders for menu elements
-css = Style("""
-.bi-Desktop {
-}
-.bi-Sunshine {
-}
-.bi-Settings {
-}
-.bi-Installers {
-}
-.bi-AppManager {
-}
-.bi-Logs {
-}
-.bi-FAQ {
-}
-""")
+css = Style()
+
+# Define the database and create tables
+db = database('/home/default/.cache/gamedb.db')
+
+class Game:
+    game_id:int; game_name:str; game_added:bool
+    def __ft__(self):
+        return Li(
+            Div(
+                Strong(self.game_name, cls='col-auto'),
+                Div(
+                    Button(
+                        'Add To Sunshine', hx_get=f'/add/{self.game_id}', target_id=f'appid-{self.game_id}',
+                        cls='btn btn-primary me-2'
+                    ),
+                    Button(
+                        'Remove', hx_get=f'/remove/{self.game_id}', target_id=f'appid-{self.game_id}',
+                        cls='btn btn-danger me-2'
+                    ),
+                    Strong(
+                        I(cls='bi bi-toggle-on') if self.game_added else I(cls='bi bi-toggle-off'),
+                        id=f'appid-{self.game_id}'
+                    ), cls='col d-flex justify-content-end'
+                ), cls='row'
+            ), cls='list-group-item'
+        )
+class Setting:
+    id:int; key:str; value:str
+    def __ft__(self):
+        return Li(
+            Div(
+                Strong(self.key, cls='col-auto'),
+                Div(
+                    Input(
+                        self.value,
+                        cls='col d-flex justify-content-end'
+                    )
+                ), cls='row'
+            ), cls='list-group-item'
+        )
+
+gamedb = db.create(Game, pk='game_id')
+settingdb = db.create(Setting, pk='id')
 
 # Page Element Contents and Structure
 #
-
-## Define how to desiplay/render items for the gamedb default table
-## Todo fix rendering to display the items in a more user friendly way
-def render(game):
-    return Li(
-        Div(
-            Strong(game.game_name, cls='col-auto'),
-            Div(
-                Button(
-                    'Add To Sunshine', hx_get=f'/add/{game.game_id}', target_id=f'appid-{game.game_id}',
-                    cls='btn btn-primary me-2'
-                ),
-                Button(
-                    'Remove', hx_get=f'/remove/{game.game_id}', target_id=f'appid-{game.game_id}',
-                    cls='btn btn-danger me-2'
-                ),
-                Strong(
-                    I(cls='bi bi-toggle-on') if game.game_added else I(cls='bi bi-toggle-off'),
-                    id=f'appid-{game.game_id}'
-                ), cls='col d-flex justify-content-end'
-            ), cls='row'), cls='list-group-item'
-    )
 
 # Setup toast notification system
 # def notify(message, hx_target, duration=3000, **kwargs):
@@ -206,18 +212,9 @@ def sunshine_appmanager_content():
 
 # Invokation of the fast_app function
 # Define the main fastHTML app
-app,rt,gamedb,Game = fast_app('/home/default/.cache/gamedb.db',
-    render=render,
-    game_id=int,
-    game_name=str,
-    game_added=bool,
-    pk='game_id',
+app,rt = fast_app(
     pico=False, # Avoid conflicts between bootstrap styling and the built in picolink
     hdrs=(
-        #Meta(http_equiv='referrer', content='no-referrer'),
-        #Meta(http_equiv='Content-Security-Policy', content="frame-src 'self' *"),
-        #Meta(http_equiv='Content-Security-Policy', content="upgrade-insecure-requests"),
-        #Meta(http_equiv='Access-Control-Allow-Origin', content="*"),
         bootstrap_links, 
         css)
 )
@@ -247,9 +244,8 @@ def get_installed_steam_games(steam_dir):
                                 game_name=game_name,
                                 game_added=False
                             ))
-
-    # Remove any appids from gamedb that were not found in the ACF files
-    gamedb[:] = [game for game in gamedb if game.game_id in found_appids]
+    # TODO Remove any appids from gamedb that were not found in the ACF files
+    
 
 # Functions to manipulate the sunshine apps.json file
 # TODO make this more robust and add error handling
