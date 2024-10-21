@@ -46,22 +46,13 @@ class Setting:
     id:int; key:str; value:str
     def __ft__(self):
         return Li(
-            Div(
-                Strong(self.key, cls='col-auto'),
-                Div(
-                    Input(
-                        self.value,
-                        cls='col d-flex justify-content-end'
-                    )
-                ), cls='row'
-            ), cls='list-group-item'
+            Strong(self.key, cls=''),
+            Input(placeholder=f"{self.value}", cls='container-fluid'),
+            cls='list-group-item'
         )
 
 gamedb = db.create(Game, pk='game_id')
 settingdb = db.create(Setting, pk='id')
-
-# Page Element Contents and Structure
-#
 
 # Setup toast notification system
 def notify(header, message, duration=1000, **kwargs):
@@ -94,10 +85,10 @@ def Sidebar(sidebar_items, hx_get, hx_vals, hx_target):
     return Div(
         Div(*(SidebarItem(o, f"{hx_get}?menu={o}", hx_vals, hx_target) for o in sidebar_items),
             id='sidebar-nav',
-            cls='list-group border-0 rounded-0 text-sm-start min-vh-100'
+            cls='list-group border-0 rounded-0 text-sm-start'
         ),
         id='sidebar',
-        cls='offcanvas offcanvas-start')
+        cls='offcanvas offcanvas-start w-25')
 
 # Add remove buttons to the sidebar
 sidebar_items = ('Desktop', 'Sunshine', 'Installers', 'App Manager', 'Logs', 'FAQ', 'Settings')
@@ -118,7 +109,7 @@ def logs_content():
                 content = "".join(lines)
                 divs.append(Details(Summary(log_file), Pre(P(content)), cls="card mb-2"))
         # Return a container with all the logs using bootstrap classes
-        return Div(*divs, cls='container-fluid py-5') if divs else Div("No log files found.")
+        return Div(*divs, cls='container py-5') if divs else Div("No log files found.")
     else:
         return Div("No log Directory Created.")
 
@@ -149,67 +140,63 @@ def installer_content():
 # The settings page content is defined here
 # TODO lots and lots
 def settings_content():
+    # If empty populate needed fields
+
+    # settingdb.insert(
+    #     Setting(key='Steam Directory',
+    #         value='/mnt/games/SteamLibrary/steamapps'
+    #     )
+    # )
+    # settingdb.insert(
+    #     Setting(key='Sunshine Json Location',
+    #         value='/home/default/.config/sunshine/apps.json'
+    #     )
+    # )
+
     return Div(
-        Ul(
-            Li(
-                Span("Steam Directory"),
-                Input(
-                    type="text", 
-                    value="/mnt/games/SteamLibrary/steamapps", 
-                    placeholder="/mnt/games/SteamLibrary/steamapps"
-                ), cls='list-group-item'
-            ),
-            Li(
-                Div(
-                    Input("Enable Poster Generation", type="checkbox")
-                ),
-                Div(
-                    Button("Download all Posters", cls='btn btn-primary me-2')
-                ),
-                Div(
-                    Button("Delete Posters", cls='btn btn-danger me-2')
-                )
-            ), cls='list-group-item'
-        ), cls="container py-5"
+        Ul(*settingdb(), id='settings-ul', cls='list-group'),
+            cls='container py-5'
     )
 
 # Sunshine App Manager content is defined here
 def sunshine_appmanager_content():
     return Div(
-        H2("Sunshine Manager", cls='col-10'),
-        Button("Restart Sunshine",
-            hx_post="/sunshine-restart",
-            hx_vals='js:{"myIP": window.location.hostname}',
-            hx_target="#toastTarget",
-            cls='col d-flex btn btn-danger'
-        ), cls='container-fluid row py-5'
-    ), Div(
-        Button("Reload Steam Games",
-            hx_post="/reload",
-            cls='container-fluid btn btn-primary'
-        ),
-        Script('''
-            function filterList() { 
-                var input, filter, ul, li, i, txtValue; 
-                input = document.getElementById(\'filter-games\'); 
-                filter = input.value.toLowerCase(); 
-                ul = document.getElementById("game-ul"); 
-                li = ul.getElementsByTagName(\'li\'); 
-                for (i = 0; i < li.length; i++) { 
-                    txtValue = li[i].textContent || li[i].innerText; if (txtValue.toLowerCase().indexOf(filter) > -1) { li[i].style.display = ""; } else { li[i].style.display = "none"; } 
-                } 
-            }
-        '''),
-        Input(id="filter-games", onkeyup="filterList()", placeholder="Type to filter list", cls='container-fluid form-control'),
-        # Div(
-        #     Input(id="label", type="text", placeholder="Global Run Command:", readonly="", cls=''),
-        #     Input(id="sunshine-pre", type="text", placeholder="/usr/bin/sunshine-run", cls='col-auto'),
-        #     cls='inline-flex'
-        # ),
         Div(
-            Ul(*gamedb(order_by='-game_added'), id='game-ul', cls='list-group'),
-            cls='row py-2'
-        )
+            H2("Sunshine Manager", cls='col-10'),
+            Button("Restart Sunshine",
+                hx_post="/sunshine-restart",
+                hx_vals='js:{"myIP": window.location.hostname}',
+                hx_target="#toastTarget",
+                cls='col d-flex btn btn-danger'
+            ), cls='container row py-5'
+        ), Div(
+            Button("Reload Steam Games",
+                hx_post="/reload",
+                cls='container-fluid btn btn-primary'
+            ),
+            Script('''
+                function filterList() { 
+                    var input, filter, ul, li, i, txtValue; 
+                    input = document.getElementById(\'filter-games\'); 
+                    filter = input.value.toLowerCase(); 
+                    ul = document.getElementById("game-ul"); 
+                    li = ul.getElementsByTagName(\'li\'); 
+                    for (i = 0; i < li.length; i++) { 
+                        txtValue = li[i].textContent || li[i].innerText; if (txtValue.toLowerCase().indexOf(filter) > -1) { li[i].style.display = ""; } else { li[i].style.display = "none"; } 
+                    } 
+                }
+            '''),
+            Input(id="filter-games", onkeyup="filterList()", placeholder="Type to filter list", cls='container-fluid form-control'),
+            # Div(
+            #     Input(id="label", type="text", placeholder="Global Run Command:", readonly="", cls=''),
+            #     Input(id="sunshine-pre", type="text", placeholder="/usr/bin/sunshine-run", cls='col-auto'),
+            #     cls='inline-flex'
+            # ),
+            Div(
+                Ul(*gamedb(order_by='-game_added'), id='game-ul', cls='list-group'),
+                cls='row py-2'
+            )
+        ), cls='container py-5'
     )
 
 # Invokation of the fast_app function
@@ -419,7 +406,7 @@ def menucontent(menu: str, myIP: str):
     switch_cases = {
         'Desktop': f'<iframe id="desktopUI" src="http://{myIP}:8083/web/index.html?autoconnect=true" width="100%" height="100%" style="border:none;" allowfullscreen></iframe>',
         'Sunshine': f'<iframe id="sunshineUI" src="https://{myIP}:47990" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
-        #'Installers':  installer_content(),
+        'Installers':  installer_content(),
         'App Manager': sunshine_appmanager_content(),
         'Logs': logs_content(),
         'FAQ': faq_content(),
