@@ -423,13 +423,29 @@ def post():
     return Script('window.location.href = "/"')
 
 # Function to restart sunshine
-# TODO implement the actual restart logic & have the button show the status
+# TODO Fix Not authorized error in sunshine's logs
 @rt('/sunshine-restart')
 def post(myIP: str):
-    #curl -X POST f'https://{myIP}:47990/api/restart'
-    return notify("Sunshine Manager", "Restarting Sunshine", 1000)
-#     #curl -X POST https://<your_server_ip>:47990/api/restart -H "Authorization: Bearer <your_api_token>"
-#     #curl -X GET https://<your_server_ip>:47990/api/status -H "Authorization: Bearer <your_api_token>"
+    #username = "sunshine"
+    #password = "sunshine"
+    # Encode credentials for Basic Authentication
+    #credentials = f"{username}:{password}"
+    #encoded_credentials = base64.b64encode(credentials.encode())
+
+    api_url = f"https://{myIP}:47990/api/restart"  
+ 
+    headers = {
+        #"Authorization": f"Basic {encoded_credentials}",
+        "Content-Type": "application/json"
+    }
+
+    # Send the restart request
+    response = requests.post(api_url, headers=headers, verify=False)
+
+    if response.status_code == 200:
+        return notify("Sunshine Manager", "Restarting Sunshine", 1000)
+    else:
+        return notify("Sunshine Manager", "Failed to Restart Sunshine", 1000)
     
 
 # The route to remove a game from sunshine
