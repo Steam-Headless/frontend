@@ -43,13 +43,19 @@ class Game:
             ), cls='list-group-item'
         )
 class Setting:
-    id:int; key:str; value:str
+    key:str; value:str
     def __ft__(self):
         return Li(
             Strong(self.key, cls=''),
             Input(placeholder=f"{self.value}", cls='container-fluid'),
             cls='list-group-item'
         )
+class Logfile:
+    def __init__(self, filename: str, content: str):
+        self.filename = filename
+        self.content = content
+    def __ft__(self):
+        return Details(Summary(self.filename), Pre(P(self.content)), cls='card mb-2')
 
 gamedb = db.create(Game, pk='game_id')
 settingdb = db.create(Setting, pk='id')
@@ -101,15 +107,15 @@ def logs_content():
         log_files = [f for f in os.listdir(logs_dir) if os.path.isfile(os.path.join(logs_dir, f)) and f.endswith('.log')]
         sorted_log_files = sorted(log_files)
         # Read the last 50 lines of each log file
-        divs = []
+        logfiles = []
         for log_file in sorted_log_files:
             file_path = os.path.join(logs_dir, log_file)
             with open(file_path, 'r') as file:
                 lines = file.readlines()[-50:]
                 content = "".join(lines)
-                divs.append(Details(Summary(log_file), Pre(P(content)), cls="card mb-2"))
+                logfiles.append(Logfile(log_file, content))
         # Return a container with all the logs using bootstrap classes
-        return Div(*divs, cls='container py-5') if divs else Div("No log files found.")
+        return Div(*logfiles, cls='container py-5') if logfiles else Div("No log files found.")
     else:
         return Div("No log Directory Created.")
 
@@ -140,18 +146,19 @@ def installer_content():
 # The settings page content is defined here
 # TODO lots and lots
 def settings_content():
-    # If empty populate needed fields
 
-    # settingdb.insert(
-    #     Setting(key='Steam Directory',
-    #         value='/mnt/games/SteamLibrary/steamapps'
-    #     )
-    # )
-    # settingdb.insert(
-    #     Setting(key='Sunshine Json Location',
-    #         value='/home/default/.config/sunshine/apps.json'
-    #     )
-    # )
+    if 'Steam Directory' not in settingdb:
+        settingdb.insert(
+            Setting(key='Steam Directory',
+                value='/mnt/games/SteamLibrary/steamapps'
+            )
+        )
+    if 'Sunshine Json Location' not in settingdb:
+        settingdb.insert(
+            Setting(key='Sunshine Json Location',
+                value='/home/default/.config/sunshine/apps.json'
+            )
+        )
 
     return Div(
         Ul(*settingdb(), id='settings-ul', cls='list-group'),
