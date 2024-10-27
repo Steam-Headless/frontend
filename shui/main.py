@@ -61,7 +61,7 @@ gamedb = db.create(Game, pk='game_id')
 settingdb = db.create(Setting, pk='id')
 
 # Setup toast notification system
-def notify(header, message, duration=1000, **kwargs):
+def notify(header, message, duration=500, **kwargs):
     return Div(
         Div(
             Div(
@@ -74,7 +74,7 @@ def notify(header, message, duration=1000, **kwargs):
                 cls='toast-body'
             ), id='liveToast', cls='toast', role='alert'
         ), cls='toast-container position-fixed bottom-0 end-0 p-3', style='z-index: 11', data_bs_delay=duration, data_bs_autohide='true'
-    ), Script('var toastEl = document.getElementById("liveToast"); var toast = new bootstrap.Toast(toastEl); toast.show();')
+    ), Script('var toastEl = document.getElementById("liveToast"); var toast = bootstrap.Toast.getOrCreateInstance(toastEl); toast.show();')
 
 # Define the sidebar items
 def SidebarItem(text, hx_get, hx_vals, hx_target, **kwargs):
@@ -170,12 +170,12 @@ def sunshine_appmanager_content():
     return Div(
         Div(
             H2("Sunshine Manager", cls='col-10'),
-            Button("Restart Sunshine",
-                hx_post="/sunshine-restart",
-                hx_vals='js:{"myIP": window.location.hostname}',
-                hx_target="#toastTarget",
-                cls='col d-flex btn btn-danger'
-            ), cls='container row py-5'
+            # Button("Restart Sunshine",
+            #     hx_post="/sunshine-restart",
+            #     hx_vals='js:{"myIP": window.location.hostname}',
+            #     hx_target="#toastTarget",
+            #     cls='col d-flex btn btn-danger'
+            # ), cls='container row py-5'
         ), Div(
             Button("Reload Steam Games",
                 hx_post="/reload",
@@ -194,11 +194,6 @@ def sunshine_appmanager_content():
                 }
             '''),
             Input(id="filter-games", onkeyup="filterList()", placeholder="Type to filter list", cls='container-fluid form-control'),
-            # Div(
-            #     Input(id="label", type="text", placeholder="Global Run Command:", readonly="", cls=''),
-            #     Input(id="sunshine-pre", type="text", placeholder="/usr/bin/sunshine-run", cls='col-auto'),
-            #     cls='inline-flex'
-            # ),
             Div(
                 Ul(*gamedb(order_by='-game_added'), id='game-ul', cls='list-group'),
                 cls='row py-2'
@@ -383,6 +378,7 @@ def fetch_and_resize_poster(game_id, game_name, save_directory='/home/default/.l
 @rt('/')
 def get():
     return Main(
+        # Sidebar Section
         Div(
             Sidebar(sidebar_items, hx_get='menucontent', hx_vals='js:{"myIP": window.location.hostname}', hx_target='#current-menu-content'),
             cls='col-auto px-0'
@@ -394,12 +390,17 @@ def get():
                 cls='border rounded-3 p-1 text-decoration-none bg-dark text-white bg-opacity-25 position-fixed my-2 mx-2'
             )
         ),
+        # Landing page and target for menu content
         Div(
             Iframe(id='landing', src='', width='100%', height='100%', style='border:none; overflow-y:hidden;', allowfullscreen=''),
             Script('document.getElementById("landing").src = "http://" + window.location.hostname + ":8083/web/index.html?autoconnect=true";'),
             id="current-menu-content", style="width: 100%; height: 100vh;"
         ),
-        Div(id='toastTarget')
+        # Notification container
+        Div(
+            Div(id='toastTarget'),
+            cls='toast-container position-fixed bottom-0 end-0 p-3'
+        )
     )
 
 # The route for the menu content, which is dynamically loaded via htmx into #current-menu-content
