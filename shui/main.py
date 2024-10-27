@@ -379,32 +379,28 @@ def fetch_and_resize_poster(game_id, game_name, save_directory='/home/default/.l
         image.save(f'{save_directory}/{game_id}.png')
 
 # Define the routes for the application
-# The Main route and responses to GET/POST requests
+# The Main route
 @rt('/')
 def get():
-    return Div(
+    return Main(
         Div(
-            Div(
-                Sidebar(sidebar_items, hx_get='menucontent', hx_vals='js:{"myIP": window.location.hostname}', hx_target='#current-menu-content'),
-                cls='col-auto px-0'),
-            Main(
-                A(I(cls='bi bi-controller bi-lg py-2 p-1'),
-                  href='#', data_bs_target='#sidebar', data_bs_toggle='offcanvas', aria_expanded='false', aria_controls='sidebar',
-                  cls='border rounded-3 p-1 text-decoration-none bg-dark text-white bg-opacity-25 position-fixed my-2 mx-2'),
-                Div(
-                  Div(
-                    Div(
-                        # NOTE Start of the landing page section
-                        Iframe(id='landing', src='', width='100%', height='100%', style='border:none', allowfullscreen=''),
-                        Script('document.getElementById("landing").src = "http://" + window.location.hostname + ":8083/web/index.html?autoconnect=true";'),
-                        id="current-menu-content", style="width: 100%; height: 100vh;"),
-                        # NOTE End of landing page section
-                    cls='col-12'
-                ), cls='row gx-0'),
-                cls='col gx-0 overflow-hidden'),
-            cls='row flex-nowrap'),
-            Div(id='toastTarget'),
-        cls='container-fluid')
+            Sidebar(sidebar_items, hx_get='menucontent', hx_vals='js:{"myIP": window.location.hostname}', hx_target='#current-menu-content'),
+            cls='col-auto px-0'
+        ),
+        Div(
+            A(
+                I(cls='bi bi-controller bi-lg py-2 p-1'),
+                href='#', data_bs_target='#sidebar', data_bs_toggle='offcanvas', aria_expanded='false', aria_controls='sidebar',
+                cls='border rounded-3 p-1 text-decoration-none bg-dark text-white bg-opacity-25 position-fixed my-2 mx-2'
+            )
+        ),
+        Div(
+            Iframe(id='landing', src='', width='100%', height='100%', style='border:none; overflow-y:hidden;', allowfullscreen=''),
+            Script('document.getElementById("landing").src = "http://" + window.location.hostname + ":8083/web/index.html?autoconnect=true";'),
+            id="current-menu-content", style="width: 100%; height: 100vh;"
+        ),
+        Div(id='toastTarget')
+    )
 
 # The route for the menu content, which is dynamically loaded via htmx into #current-menu-content
 @rt('/menucontent')
