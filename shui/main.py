@@ -58,7 +58,7 @@ class Logfile:
         return Details(Summary(self.filename), Pre(P(self.content)), cls='card mb-2')
 
 gamedb = db.create(Game, pk='game_id')
-settingdb = db.create(Setting, pk='id')
+settingdb = db.create(Setting, pk='key')
 
 # Grab Any ENV variables for later use
 port_novnc_web = os.getenv('PORT_NOVNC_WEB')
@@ -413,11 +413,11 @@ def menucontent(menu: str, myIP: str):
     switch_cases = {
         'Desktop': f'<iframe id="desktopUI" src="http://{myIP}:{port_novnc_web}/web/index.html?autoconnect=true" width="100%" height="100%" style="border:none;" allowfullscreen></iframe>',
         'Sunshine': f'<iframe id="sunshineUI" src="https://{myIP}:47990" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
-        'Installers':  installer_content(),
+        #'Installers':  installer_content(),
         'App Manager': sunshine_appmanager_content(),
         'Logs': logs_content(),
         'FAQ': faq_content(),
-        'Settings': settings_content()
+        #'Settings': settings_content()
     }
 
     return switch_cases.get(menu, Div("No content available", cls='py-5'))
