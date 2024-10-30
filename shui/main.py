@@ -46,9 +46,10 @@ class Setting:
     key:str; value:str
     def __ft__(self):
         return Li(
-            Strong(self.key, cls=''),
-            Input(placeholder=f"{self.value}", cls='container-fluid'),
-            cls='list-group-item'
+            Strong(self.key, cls='col-auto'),
+            Input(placeholder=f"{self.value}", id=f'setVal-{self.key}', cls='col-8'),
+            Button('Save', hx_post=f'/save/{self.key}', cls='btn btn-danger col-1'),
+            cls='list-group-item grid'
         )
 class Logfile:
     def __init__(self, filename: str, content: str):
@@ -162,6 +163,13 @@ def settings_content():
                 value='/home/default/.config/sunshine/apps.json'
             )
         )
+    
+    if 'Poster Directory' not in settingdb:
+        settingdb.insert(
+            Setting(key='Poster Directory',
+                value='/home/default/.local/share/posters'
+            )
+        )
 
     return Div(
         Ul(*settingdb(), id='settings-ul', cls='list-group'),
@@ -261,7 +269,7 @@ def get_installed_steam_games(steam_dir):
 
 # Functions to manipulate the sunshine apps.json file
 # TODO make this more robust and add error handling
-def add_sunshine_app(app_name, app_id, conf_loc='/home/default/.config/sunshine/apps.json'):
+def add_sunshine_app(app_name, app_id, conf_loc=settingdb['Sunshine Json Location'].value):
 
     with open(conf_loc, 'r') as f:
         data = json.load(f)
@@ -296,7 +304,7 @@ def add_sunshine_app(app_name, app_id, conf_loc='/home/default/.config/sunshine/
         json.dump(data, f, indent=4)
 
 # Function to delete a Sunshine App from the apps.json file
-def del_sunshine_app(app_name, app_id, conf_loc='/home/default/.config/sunshine/apps.json'):
+def del_sunshine_app(app_name, app_id, conf_loc=settingdb['Sunshine Json Location'].value):
 
     with open(conf_loc, 'r', encoding='utf-8') as f:
         data = json.load(f) 
@@ -309,7 +317,7 @@ def del_sunshine_app(app_name, app_id, conf_loc='/home/default/.config/sunshine/
 
 # Function to fetch and resize Steam game posters
 # TODO Center text on the image if no header image is found
-def fetch_and_resize_poster(game_id, game_name, save_directory='/home/default/.local/share/posters'):
+def fetch_and_resize_poster(game_id, game_name, save_directory=settingdb['Steam Directory'].value):
     # Create the directory if it doesn't exist
     if not os.path.exists(save_directory):
         os.makedirs(save_directory)
@@ -417,7 +425,7 @@ def menucontent(menu: str, myIP: str):
         'App Manager': sunshine_appmanager_content(),
         'Logs': logs_content(),
         'FAQ': faq_content(),
-        #'Settings': settings_content()
+        'Settings': settings_content()
     }
 
     return switch_cases.get(menu, Div("No content available", cls='py-5'))
@@ -426,7 +434,7 @@ def menucontent(menu: str, myIP: str):
 # The route to reload the app manager content
 @rt('/reload')
 def post():
-    get_installed_steam_games('/mnt/games/SteamLibrary/steamapps')
+    get_installed_steam_games(settingdb['Steam Directory'].value)
     return Script('window.location.href = "/"')
 
 # Function to restart sunshine
