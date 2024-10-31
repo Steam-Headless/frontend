@@ -221,6 +221,23 @@ app,rt = fast_app(
         css)
 )
 
+def get_steam_library_folders():
+    library_folders = []
+    
+    with open('/home/default/.steam/steam/steamapps/libraryfolders.vdf', 'r') as file:
+        content = file.read()
+    
+    # Use regex to find all paths
+    path_pattern = r'"path"\s*"([^"]*)"'
+    paths = re.findall(path_pattern, content)
+    
+    # Append 'steamapps' to each path
+    for path in paths:
+        full_path = os.path.join(path, 'steamapps')
+        library_folders.append(full_path)
+    
+    return library_folders
+
 # Function to populate the sqlite db with steam game data
 def get_installed_steam_games(steam_dir):
     found_appids = set()  # Use a set to store unique appids found
