@@ -460,7 +460,9 @@ def menucontent(menu: str):
 # The route to reload the app manager content
 @rt('/reload')
 def post():
-    get_installed_steam_games('/mnt/games/SteamLibrary/steamapps')
+    __libraries = get_steam_library_folders()
+    for _steamdir in __libraries:
+        get_installed_steam_games(_steamdir)
     return Script('window.location.href = "/"')
 
 # Function to restart sunshine
