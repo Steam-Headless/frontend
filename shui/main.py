@@ -3,6 +3,7 @@ from PIL import Image, ImageDraw, ImageFont
 import requests
 import json
 import os
+import socket
 
 # Define the bootstrap version, style, and icon packs
 cdn = 'https://cdn.jsdelivr.net/npm/bootstrap'
@@ -16,9 +17,6 @@ bootstrap_links = [
 # Attempt to avoid needing to use a .css file. Insert overrides here if needed
 # Placeholders for menu elements
 css = Style()
-
-# Define the database and create tables
-db = database('/home/default/.cache/shui.db')
 
 class Game:
     game_id:int; game_name:str; game_added:bool
@@ -46,9 +44,10 @@ class Setting:
     key:str; value:str
     def __ft__(self):
         return Li(
-            Strong(self.key, cls=''),
-            Input(placeholder=f"{self.value}", cls='container-fluid'),
-            cls='list-group-item'
+            Strong(self.key, cls='col-auto'),
+            Input(placeholder=f"{self.value}", id=f'setVal-{self.key}', cls='col-8'),
+            Button('Save', hx_post=f'/save/{self.key}', cls='btn btn-danger col-1'),
+            cls='list-group-item grid'
         )
 class Logfile:
     def __init__(self, filename: str, content: str):
@@ -57,8 +56,49 @@ class Logfile:
     def __ft__(self):
         return Details(Summary(self.filename), Pre(P(self.content)), cls='card mb-2')
 
+# # Define the database and create tables
+# if not os.path.isfile('/home/default/.cache/shui.db'):
+#     db = database('/home/default/.cache/shui.db')
+#     gamedb = db.create(Game, pk='game_id')
+#     settingdb = db.create(Setting, pk='key')
+#     settingdb.insert(
+#         Setting(
+#             key='Poster Directory',
+#             value='/home/default/.local/share/posters'
+#         )
+#     )
+# else:
+#     db = database('/home/default/.cache/shui.db')
+#     gamedb = db.table(Game, pk='game_id')
+#     settingdb = db.table(Setting, pk='key')
+
+# Define the database and create tables
+db = database('/home/default/.cache/shui.db')
 gamedb = db.create(Game, pk='game_id')
 settingdb = db.create(Setting, pk='key')
+
+# Get the Server IP Address
+def get_local_ip():
+    try:
+        # Create a socket object
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+        # Connect to an external server (doesn't actually send any data)
+        s.connect(("8.8.8.8", 80))
+
+        # Get the local IP address
+        local_ip = s.getsockname()[0]
+
+        # Close the socket
+        s.close()
+
+        return local_ip
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+
+# Use the function to get the server IP
+server_ip = get_local_ip()
 
 # Grab Any ENV variables for later use
 port_novnc_web = os.getenv('PORT_NOVNC_WEB')
@@ -80,19 +120,20 @@ def notify(header, message, duration=500, **kwargs):
     ), Script('var toastEl = document.getElementById("liveToast"); var toast = bootstrap.Toast.getOrCreateInstance(toastEl); toast.show();')
 
 # Define the sidebar items
-def SidebarItem(text, hx_get, hx_vals, hx_target, **kwargs):
+def SidebarItem(text, hx_get, hx_target, **kwargs):
     return Div(
         I(cls=f'bi bi-{text}'),
         Span(text),
-        hx_get=hx_get, hx_vals=hx_vals, hx_target=hx_target,
+        hx_get=hx_get, hx_target=hx_target,
+        data_bs_toggle='modal', data_bs_target="#centeredScrollableModal",
         data_bs_parent='#sidebar', data_bs_dismiss='offcanvas', role='button',
         cls='list-group-item border-end-0 d-inline-block text-truncate',
         **kwargs)
 
 # Define the sidebar
-def Sidebar(sidebar_items, hx_get, hx_vals, hx_target):
+def Sidebar(sidebar_items, hx_get, hx_target):
     return Div(
-        Div(*(SidebarItem(o, f"{hx_get}?menu={o}", hx_vals, hx_target) for o in sidebar_items),
+        Div(*(SidebarItem(o, f"{hx_get}?menu={o}", hx_target) for o in sidebar_items),
             id='sidebar-nav',
             cls='list-group border-0 rounded-0 text-sm-start'
         ),
@@ -100,7 +141,7 @@ def Sidebar(sidebar_items, hx_get, hx_vals, hx_target):
         cls='offcanvas offcanvas-start w-25')
 
 # Add remove buttons to the sidebar
-sidebar_items = ('Desktop', 'Sunshine', 'Installers', 'App Manager', 'Logs', 'FAQ', 'Settings')
+sidebar_items = ('App Manager', 'Logs', 'FAQ')
 
 # The Log Page content is defined here
 def logs_content():
@@ -147,22 +188,7 @@ def installer_content():
     )
 
 # The settings page content is defined here
-# TODO lots and lots
 def settings_content():
-
-    if 'Steam Directory' not in settingdb:
-        settingdb.insert(
-            Setting(key='Steam Directory',
-                value='/mnt/games/SteamLibrary/steamapps'
-            )
-        )
-    if 'Sunshine Json Location' not in settingdb:
-        settingdb.insert(
-            Setting(key='Sunshine Json Location',
-                value='/home/default/.config/sunshine/apps.json'
-            )
-        )
-
     return Div(
         Ul(*settingdb(), id='settings-ul', cls='list-group'),
             cls='container py-5'
@@ -172,14 +198,9 @@ def settings_content():
 def sunshine_appmanager_content():
     return Div(
         Div(
-            H2("Sunshine Manager", cls='col-10'),
-            # Button("Restart Sunshine",
-            #     hx_post="/sunshine-restart",
-            #     hx_vals='js:{"myIP": window.location.hostname}',
-            #     hx_target="#toastTarget",
-            #     cls='col d-flex btn btn-danger'
-            # ), cls='container row py-5'
-        ), Div(
+            H2("Sunshine Manager", cls='col-10')
+        ), 
+        Div(
             Button("Reload Steam Games",
                 hx_post="/reload",
                 cls='container-fluid btn btn-primary'
@@ -212,6 +233,23 @@ app,rt = fast_app(
         bootstrap_links, 
         css)
 )
+
+def get_steam_library_folders():
+    library_folders = []
+    
+    with open('/home/default/.steam/steam/steamapps/libraryfolders.vdf', 'r') as file:
+        content = file.read()
+    
+    # Use regex to find all paths
+    path_pattern = r'"path"\s*"([^"]*)"'
+    paths = re.findall(path_pattern, content)
+    
+    # Append 'steamapps' to each path
+    for path in paths:
+        full_path = os.path.join(path, 'steamapps')
+        library_folders.append(full_path)
+    
+    return library_folders
 
 # Function to populate the sqlite db with steam game data
 def get_installed_steam_games(steam_dir):
@@ -381,42 +419,38 @@ def fetch_and_resize_poster(game_id, game_name, save_directory='/home/default/.l
 @rt('/')
 def get():
     return Main(
-        # Sidebar Section
-        Div(
-            Sidebar(sidebar_items, hx_get='menucontent', hx_vals='js:{"myIP": window.location.hostname}', hx_target='#current-menu-content'),
-            cls='col-auto px-0'
+        Sidebar(
+            sidebar_items, hx_get='menucontent', hx_target='#current-menu-content'
+        ),
+        A(
+            I(cls='bi bi-controller bi-lg py-2 p-1'),
+            href='#', data_bs_target='#sidebar', data_bs_toggle='offcanvas', aria_expanded='false', aria_controls='sidebar',
+            cls='border rounded-3 p-1 text-decoration-none bg-dark text-white bg-opacity-25 position-fixed my-2 mx-2'
+        ),
+        Iframe(
+            id='landing', src=f'http://{server_ip}:{port_novnc_web}/web/index.html?autoconnect=true',
+            style='width: 100%; height: 100vh; border:none; overflow-y:hidden;'
         ),
         Div(
-            A(
-                I(cls='bi bi-controller bi-lg py-2 p-1'),
-                href='#', data_bs_target='#sidebar', data_bs_toggle='offcanvas', aria_expanded='false', aria_controls='sidebar',
-                cls='border rounded-3 p-1 text-decoration-none bg-dark text-white bg-opacity-25 position-fixed my-2 mx-2'
-            )
-        ),
-        # Landing page and target for menu content
-        Div(
-            Iframe(id='landing', src='', width='100%', height='100%', style='border:none; overflow-y:hidden;', allowfullscreen=''),
-            Script(f'document.getElementById("landing").src = "http://" + window.location.hostname + ":{port_novnc_web}/web/index.html?autoconnect=true";'),
-            id="current-menu-content", style="width: 100%; height: 100vh;"
-        ),
-        # Notification container
-        Div(
-            Div(id='toastTarget'),
-            cls='toast-container position-fixed bottom-0 end-0 p-3'
+            Div(
+                Div(
+                    Div(id='current-menu-content', cls='modal-body'),
+                    cls='modal-content'
+                ),
+                cls='modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable'
+            ),
+            id="centeredScrollableModal", cls='modal', tabindex='-1', aria_labelledby='modalLabel', aria_hidden='true'
         )
     )
 
 # The route for the menu content, which is dynamically loaded via htmx into #current-menu-content
 @rt('/menucontent')
-def menucontent(menu: str, myIP: str):
-
+def menucontent(menu: str):
     switch_cases = {
-        'Desktop': f'<iframe id="desktopUI" src="http://{myIP}:{port_novnc_web}/web/index.html?autoconnect=true" width="100%" height="100%" style="border:none;" allowfullscreen></iframe>',
-        'Sunshine': f'<iframe id="sunshineUI" src="https://{myIP}:47990" width="100%" height="100%" style="border:none;" allow-insecure allowfullscreen></iframe>',
         #'Installers':  installer_content(),
         'App Manager': sunshine_appmanager_content(),
         'Logs': logs_content(),
-        'FAQ': faq_content(),
+        'FAQ': faq_content()
         #'Settings': settings_content()
     }
 
@@ -432,14 +466,14 @@ def post():
 # Function to restart sunshine
 # TODO Fix Not authorized error in sunshine's logs
 @rt('/sunshine-restart')
-def post(myIP: str):
+def post():
     #username = "sunshine"
     #password = "sunshine"
     # Encode credentials for Basic Authentication
     #credentials = f"{username}:{password}"
     #encoded_credentials = base64.b64encode(credentials.encode())
 
-    api_url = f"https://{myIP}:47990/api/restart"  
+    api_url = f"https://{server_ip}:47990/api/restart"  
  
     headers = {
         #"Authorization": f"Basic {encoded_credentials}",
@@ -475,4 +509,4 @@ def get(game_id:int):
 
 # Run the app
 # Serve the application at port 8082
-serve(port=8082)
+serve(port=8082, reload=False)
