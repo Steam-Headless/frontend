@@ -1,0 +1,9 @@
+# Websockify requirements
+numpy
+requests
+jwcrypto
+redis
+
+# SHUI requirements
+python-fasthtml
+pillow
