@@ -5,3 +5,5 @@
 /web/config.json
 utils/websockify
 /tmp
+/venv
+.sesskey
