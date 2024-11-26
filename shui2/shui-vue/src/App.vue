@@ -21,7 +21,8 @@ main {
 }
 
 .content {
-  margin: 20px;
+  margin: 3px;
+  margin-top: 20px;
   display: flex;
   justify-content: center;
   flex-grow: 1;

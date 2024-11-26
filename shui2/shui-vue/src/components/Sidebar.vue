@@ -22,7 +22,7 @@ import sunshineConfigIcon from '@/assets/icons/sunshine-config.svg';
         <RouterLink to="/home" class="nav-item">
           <img :src="homeIcon"/>
           Home</RouterLink>
-        <RouterLink to="/novnc" class="nav-item">
+        <RouterLink to="/vnc" class="nav-item">
           <img :src="connectIcon"/>
           Connect</RouterLink>
         <RouterLink to="/logs" class="nav-item">

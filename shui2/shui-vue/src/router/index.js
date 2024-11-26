@@ -9,7 +9,7 @@ import Settings from '@/pages/Settings.vue'
 const routes = [
   { path: '/home', component: Home },
   { path: '/logs', component: Logs },
-  { path: '/novnc', component: NoVNC },
+  { path: '/vnc', component: NoVNC },
   { path: '/faq', component: FAQ },
   { path: '/sunshineconfig', component: SunshineConfig },
   { path: '/settings', component: Settings}

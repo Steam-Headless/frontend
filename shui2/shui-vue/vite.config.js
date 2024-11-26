@@ -13,6 +13,21 @@ export default defineConfig({
   server: {
     host: '192.168.8.220',
     port: 8084,
+    proxy: {
+      '/api': {
+          target: 'http://192.168.8.220:3002',
+      },
+      '/web': {
+          target: 'http://192.168.8.220:3002',
+      },
+      '/noVNC': {
+          target: 'http://192.168.8.220:3002',
+      },
+      '/websockify': {
+          target: 'ws://192.168.8.220:3002',
+          ws: true,
+      }
+    },
   },
   resolve: {
     alias: {

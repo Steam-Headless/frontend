@@ -7,9 +7,8 @@ export default {
   },
   async mounted() {
     try {
-      // const response = await fetch("/api/config"); // fetch config from backend
-      // const config = await response.json();
-      this.iframeSrc = `http://192.168.8.220:8082/web/index.html?autoconnect=true`;
+      // Ref for args: https://github.com/novnc/noVNC/blob/master/docs/EMBEDDING.md
+      this.iframeSrc = `/web/index.html?autoconnect=true&resize=scale`;
     } catch (error) {
       console.error("Failed to load config:", error);
     }
@@ -35,5 +34,6 @@ export default {
   iframe {
     height: 100%;
     width: 100%;
+    border: none;
   }
 </style>
