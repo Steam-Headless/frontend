@@ -5,12 +5,14 @@ import NoVNC from '@/pages/NoVNC.vue';
 import FAQ from '@/pages/FAQ.vue';
 import SunshineConfig from '@/pages/SunshineConfig.vue';
 import Settings from '@/pages/Settings.vue'
+import AppManager from "@/pages/AppManager.vue";
 
 const routes = [
   { path: '/home', component: Home },
   { path: '/logs', component: Logs },
   { path: '/vnc', component: NoVNC },
   { path: '/faq', component: FAQ },
+  { path: '/appmanager', component: AppManager },
   { path: '/sunshineconfig', component: SunshineConfig },
   { path: '/settings', component: Settings}
 ];

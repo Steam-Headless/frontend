@@ -11,20 +11,19 @@ export default defineConfig({
     vueDevTools(),
   ],
   server: {
-    host: '192.168.8.220',
     port: 8084,
     proxy: {
       '/api': {
-          target: 'http://192.168.8.220:3002',
+          target: 'http://localhost:3001',
       },
       '/web': {
-          target: 'http://192.168.8.220:3002',
+          target: 'http://localhost:3001',
       },
       '/noVNC': {
-          target: 'http://192.168.8.220:3002',
+          target: 'http://localhost:3001',
       },
       '/websockify': {
-          target: 'ws://192.168.8.220:3002',
+          target: 'ws://localhost:3001',
           ws: true,
       }
     },

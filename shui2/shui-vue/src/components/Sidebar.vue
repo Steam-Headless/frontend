@@ -4,7 +4,8 @@ import connectIcon from '@/assets/icons/connect.svg';
 import logsIcon from '@/assets/icons/logs.svg';
 import faqIcon from '@/assets/icons/faq.svg';
 import settingsIcon from '@/assets/icons/settings.svg';
-import sunshineConfigIcon from '@/assets/icons/sunshine-config.svg';
+import appManagerIcon from '@/assets/icons/app-manager.svg';
+import sunshineIcon from '@/assets/icons/logo-sunshine.svg';
 </script>
 
 <template>
@@ -31,9 +32,12 @@ import sunshineConfigIcon from '@/assets/icons/sunshine-config.svg';
         <RouterLink to="/faq" class="nav-item">
           <img :src="faqIcon"/>
           FAQ</RouterLink>
-        <RouterLink to="/sunshineconfig" class="nav-item">
-          <img :src="sunshineConfigIcon"/>
+        <RouterLink to="/appmanager" class="nav-item">
+          <img :src="appManagerIcon"/>
           App Manager</RouterLink>
+        <RouterLink to="/sunshineconfig" class="nav-item">
+          <img :src="sunshineIcon"/>
+          Sunshine</RouterLink>
         <RouterLink to="/settings" class="nav-item">
           <img :src="settingsIcon"/>
           Settings</RouterLink>
