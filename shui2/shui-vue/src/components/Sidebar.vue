@@ -6,41 +6,56 @@ import faqIcon from '@/assets/icons/faq.svg';
 import settingsIcon from '@/assets/icons/settings.svg';
 import appManagerIcon from '@/assets/icons/app-manager.svg';
 import sunshineIcon from '@/assets/icons/logo-sunshine.svg';
+import { useSidebarStore } from "@/stores/sidebar";
+
+const sidebarStore = useSidebarStore();
 </script>
 
 <template>
-  <div class="sidebar">
+  <div class="sidebar"
+    @mouseover="sidebarStore.extendSidebar"
+    @mouseleave="sidebarStore.collapseSidebar"
+    :class="['sidebar', { extended: sidebarStore.isExtended }]"
+  >
     <div class="sidebar-content">
-      <div class="title-content">
+      <div class="title-content"
+      :class="['title-content', { extended: sidebarStore.isExtended }]">
         <RouterLink to="/home">
           <img src="@/assets/steam-headless-logo.png" id="logo" />
         </RouterLink>
         <RouterLink to="/home" style="text-decoration: none">
-          <h1 class="title">Steam Headless</h1>
+          <h1 class="title">{{ sidebarStore.isExtended ? "Steam Headless" : "" }}</h1>
         </RouterLink>
       </div>
       <div class="sidebar-items">
         <RouterLink to="/home" class="nav-item">
           <img :src="homeIcon"/>
-          Home</RouterLink>
+          {{ sidebarStore.isExtended ? "Home" : "" }}
+        </RouterLink>
         <RouterLink to="/vnc" class="nav-item">
           <img :src="connectIcon"/>
-          Connect</RouterLink>
+          {{ sidebarStore.isExtended ? "Connect" : "" }}
+        </RouterLink>
         <RouterLink to="/logs" class="nav-item">
           <img :src="logsIcon"/>
-          Logs</RouterLink>
+          {{ sidebarStore.isExtended ? "Logs" : "" }}
+        </RouterLink>
         <RouterLink to="/faq" class="nav-item">
           <img :src="faqIcon"/>
-          FAQ</RouterLink>
+          {{ sidebarStore.isExtended ? "FAQ" : "" }}
+        </RouterLink>
         <RouterLink to="/appmanager" class="nav-item">
           <img :src="appManagerIcon"/>
-          App Manager</RouterLink>
+          {{ sidebarStore.isExtended ? "App Manager" : "" }}
+        </RouterLink>
         <RouterLink to="/sunshineconfig" class="nav-item">
           <img :src="sunshineIcon"/>
-          Sunshine</RouterLink>
+          {{ sidebarStore.isExtended ? "Sunshine" : "" }}
+        </RouterLink>
         <RouterLink to="/settings" class="nav-item">
           <img :src="settingsIcon"/>
-          Settings</RouterLink>
+          {{ sidebarStore.isExtended ? "Settings" : "" }}
+        </RouterLink>
       </div>
     </div>
   </div>
@@ -48,32 +63,35 @@ import sunshineIcon from '@/assets/icons/logo-sunshine.svg';
 
 <style scoped>
 .sidebar {
-  /* width: 40vw; */
-  max-width: 400px;
+  width: 85px;
   height: 100vh;
   background-color: var(--color-blue-transparent);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px); /* For Safari compatibility */
+  transition: width 0.2s;
 }
-.sidebar-content {
+.sidebar.extended {
+  width: 300px;
 }
 
 .title-content {
-  padding: 20px 40px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 10px;
+  padding: 20px 20px;
   border-bottom: 1px solid var(--color-black);
+}
+.title-content.extended {
+  gap: 10px;
 }
 
 .title {
   font-size: 26px;
   color: var(--color-text-light);
+  white-space: nowrap;
 }
 
 #logo {
-  height: 60px;
+  height: 44px;
 }
 
 .sidebar-items {
@@ -88,13 +106,13 @@ import sunshineIcon from '@/assets/icons/logo-sunshine.svg';
   align-items: center;
   gap: 10px;
   padding: 10px;
-  padding-left: 30px;
   margin: 5px 20px;
   /* background-color: var(--color-nav-dull); */
   border-radius: 10px;
   color: var(--color-text-light);
   text-decoration: none;
   transition: ease-in-out 0.1s;
+  white-space: nowrap;
 }
 
 .nav-item:hover {

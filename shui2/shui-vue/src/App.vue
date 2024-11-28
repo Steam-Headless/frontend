@@ -16,13 +16,11 @@ import { RouterView } from "vue-router";
 main {
   display: flex;
   justify-content: space-between;
-  /* display: grid;
-  grid-template-columns: 1fr 2fr; */
 }
 
 .content {
-  margin: 3px;
   margin-top: 20px;
+  margin-bottom: 4px;
   display: flex;
   justify-content: center;
   flex-grow: 1;
