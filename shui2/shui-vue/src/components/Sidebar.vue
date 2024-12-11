@@ -20,15 +20,15 @@ const sidebarStore = useSidebarStore();
     <div class="sidebar-content">
       <div class="title-content"
       :class="['title-content', { extended: sidebarStore.isExtended }]">
-        <RouterLink to="/home">
+        <RouterLink to="/">
           <img src="@/assets/steam-headless-logo.png" id="logo" />
         </RouterLink>
-        <RouterLink to="/home" style="text-decoration: none">
+        <RouterLink to="/" style="text-decoration: none">
           <h1 class="title">{{ sidebarStore.isExtended ? "Steam Headless" : "" }}</h1>
         </RouterLink>
       </div>
       <div class="sidebar-items">
-        <RouterLink to="/home" class="nav-item">
+        <RouterLink to="/" class="nav-item">
           <img :src="homeIcon"/>
           {{ sidebarStore.isExtended ? "Home" : "" }}
         </RouterLink>
@@ -63,9 +63,12 @@ const sidebarStore = useSidebarStore();
 
 <style scoped>
 .sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 85px;
   height: 100vh;
-  background-color: var(--color-blue-transparent);
+  background-color: var(--color-blue);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px); /* For Safari compatibility */
   transition: width 0.2s;
@@ -77,8 +80,8 @@ const sidebarStore = useSidebarStore();
 .title-content {
   display: flex;
   align-items: center;
-  padding: 20px 20px;
-  border-bottom: 1px solid var(--color-black);
+  padding: 10px 20px;
+  /* border-bottom: 1px solid var(--color-black); */
 }
 .title-content.extended {
   gap: 10px;
@@ -86,7 +89,7 @@ const sidebarStore = useSidebarStore();
 
 .title {
   font-size: 26px;
-  color: var(--color-text-light);
+  color: var(--color-off-white);
   white-space: nowrap;
 }
 
@@ -107,9 +110,8 @@ const sidebarStore = useSidebarStore();
   gap: 10px;
   padding: 10px;
   margin: 5px 20px;
-  /* background-color: var(--color-nav-dull); */
   border-radius: 10px;
-  color: var(--color-text-light);
+  color: var(--color-off-white);
   text-decoration: none;
   transition: ease-in-out 0.1s;
   white-space: nowrap;

@@ -8,7 +8,7 @@ import Settings from '@/pages/Settings.vue'
 import AppManager from "@/pages/AppManager.vue";
 
 const routes = [
-  { path: '/home', component: Home },
+  { path: '/', component: Home },
   { path: '/logs', component: Logs },
   { path: '/vnc', component: NoVNC },
   { path: '/faq', component: FAQ },
