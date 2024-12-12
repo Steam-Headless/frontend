@@ -36,30 +36,26 @@ function logsList() {
 
     // filter to get only log files
     const logFiles = files.filter((file) => file.endsWith('.log'));
-
     return logFiles.sort();
 }
 
-function logsContent(logName) {
-    const finalLogFiles = [];
+function logsContent(fileName) {
+    let finalLogLines = [];
 
     try {
-        let sortedLogFiles = logsList();
+        const sortedLogFiles = logsList();
 
-        for (logFile in sortedLogFiles) {
-            if (logName === logFile) {
+        for (const logFile of sortedLogFiles) {
+            if (fileName === logFile) {
                 const filepath = path.join(logsDir, logFile);
-
-                const data = fs.readFileSync(filepath);
-                const lines = data.split('\n');
-                const endLines = lines.slice(-50); // last 50 lines
-                const content = ''.join(endLines);
-                finalLogFiles.push(LogFile(logFile, content));
+                const data = fs.readFileSync(filepath, "utf-8");
+                const lines = data.split("\n");
+                finalLogLines = lines.slice(-50); // last 50 lines
             }
         }
-        return finalLogFiles;
+        return finalLogLines;
     } catch (e) {
-        console.error(`Error fetching logs for file ${logName}: `, e);
+        console.error(`Error fetching logs for file ${fileName}: `, e);
     }
 }
 
@@ -106,8 +102,8 @@ app.get('/api/config', (req, res) => {
     res.send(readConfig());
 });
 
-app.get('/api/logs/content/<file_name>', (req, res) => {
-    const fileName = file_name;
+app.get('/api/logs/content/:fileName', (req, res) => {
+    const fileName = req.params.fileName;
     res.send(logsContent(fileName));
 });
 
