@@ -54,51 +54,44 @@
 
             <div class="noVNC_scroll">
 
-            <h1 class="noVNC_logo" translate="no">
-                <img src="./images/icons/novnc-ios-40.png" alt="Steam" class="noVNC_logo_image">
-                <span>Steam</span>
-                <br>
-                Headless
-            </h1>
-
-            <hr>
-
             <!-- Drag/Pan the viewport -->
             <input type="image" alt="Drag" src="images/drag.svg"
                 id="noVNC_view_drag_button" class="noVNC_button noVNC_hidden"
                 title="Move/Drag Viewport">
 
             <!--noVNC Touch Device only buttons-->
-            <div id="noVNC_mobile_buttons">
+            <div id="noVNC_mobile_buttons" style="display: none">
                 <input type="image" alt="Keyboard" src="images/keyboard.svg"
                     id="noVNC_keyboard_button" class="noVNC_button" title="Show Keyboard">
             </div>
 
-            <!-- Extra manual keys -->
-            <input type="image" alt="Extra keys" src="images/toggleextrakeys.svg"
-                id="noVNC_toggle_extra_keys_button" class="noVNC_button"
-                title="Show Extra Keys">
-            <div class="noVNC_vcenter">
-            <div id="noVNC_modifiers" class="noVNC_panel">
-                <input type="image" alt="Ctrl" src="images/ctrl.svg"
-                    id="noVNC_toggle_ctrl_button" class="noVNC_button"
-                    title="Toggle Ctrl">
-                <input type="image" alt="Alt" src="images/alt.svg"
-                    id="noVNC_toggle_alt_button" class="noVNC_button"
-                    title="Toggle Alt">
-                <input type="image" alt="Windows" src="images/windows.svg"
-                    id="noVNC_toggle_windows_button" class="noVNC_button"
-                    title="Toggle Windows">
-                <input type="image" alt="Tab" src="images/tab.svg"
-                    id="noVNC_send_tab_button" class="noVNC_button"
-                    title="Send Tab">
-                <input type="image" alt="Esc" src="images/esc.svg"
-                    id="noVNC_send_esc_button" class="noVNC_button"
-                    title="Send Escape">
-                <input type="image" alt="Ctrl+Alt+Del" src="images/ctrlaltdel.svg"
-                    id="noVNC_send_ctrl_alt_del_button" class="noVNC_button"
-                    title="Send Ctrl-Alt-Del">
-            </div>
+
+            <div style="width: 35px;">
+                <!-- Extra manual keys -->
+                <input type="image" alt="Extra keys" src="images/toggleextrakeys.svg"
+                    id="noVNC_toggle_extra_keys_button" class="noVNC_button"
+                    title="Show Extra Keys">
+
+                <div id="noVNC_modifiers" class="noVNC_panel">
+                    <input type="image" alt="Ctrl" src="images/ctrl.svg"
+                        id="noVNC_toggle_ctrl_button" class="noVNC_button"
+                        title="Toggle Ctrl">
+                    <input type="image" alt="Alt" src="images/alt.svg"
+                        id="noVNC_toggle_alt_button" class="noVNC_button"
+                        title="Toggle Alt">
+                    <input type="image" alt="Windows" src="images/windows.svg"
+                        id="noVNC_toggle_windows_button" class="noVNC_button"
+                        title="Toggle Windows">
+                    <input type="image" alt="Tab" src="images/tab.svg"
+                        id="noVNC_send_tab_button" class="noVNC_button"
+                        title="Send Tab">
+                    <input type="image" alt="Esc" src="images/esc.svg"
+                        id="noVNC_send_esc_button" class="noVNC_button"
+                        title="Send Escape">
+                    <input type="image" alt="Ctrl+Alt+Del" src="images/ctrlaltdel.svg"
+                        id="noVNC_send_ctrl_alt_del_button" class="noVNC_button"
+                        title="Send Ctrl-Alt-Del">
+                </div>
             </div>
 
             <!-- Shutdown/Reboot -->
@@ -117,20 +110,22 @@
             </div>
 
             <!-- Clipboard -->
-            <input type="image" alt="Clipboard" src="images/clipboard.svg"
+            <div style="width: 35px;">
+                <input type="image" alt="Clipboard" src="images/clipboard.svg"
                 id="noVNC_clipboard_button" class="noVNC_button"
                 title="Clipboard">
-            <div class="noVNC_vcenter">
-            <div id="noVNC_clipboard" class="noVNC_panel">
-                <div class="noVNC_heading">
-                    <img alt="" src="images/clipboard.svg"> Clipboard
+
+                <div id="noVNC_clipboard" class="noVNC_panel">
+                    <div class="noVNC_heading">
+                        <img alt="" src="images/clipboard.svg"> Clipboard
+                    </div>
+                    <p class="noVNC_subheading">
+                        Edit clipboard content in the textarea below.
+                    </p>
+                    <textarea id="noVNC_clipboard_text" rows=5></textarea>
                 </div>
-                <p class="noVNC_subheading">
-                    Edit clipboard content in the textarea below.
-                </p>
-                <textarea id="noVNC_clipboard_text" rows=5></textarea>
             </div>
-            </div>
+
 
             <!-- Toggle fullscreen -->
             <input type="image" alt="Full Screen" src="images/fullscreen.svg"
@@ -140,6 +135,7 @@
             <!-- Settings -->
             <input type="image" alt="Settings" src="images/settings.svg"
                 id="noVNC_settings_button" class="noVNC_button"
+                style="display:none"
                 title="Settings">
             <div class="noVNC_vcenter">
             <div id="noVNC_settings" class="noVNC_panel">
@@ -240,6 +236,7 @@
             <!-- Connection Controls -->
             <input type="image" alt="Disconnect" src="images/disconnect.svg"
                 id="noVNC_disconnect_button" class="noVNC_button"
+                style="display:none"
                 title="Disconnect">
 
             </div>
