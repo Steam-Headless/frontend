@@ -40,22 +40,22 @@ const sidebarStore = useSidebarStore();
           <img :src="logsIcon"/>
           {{ sidebarStore.isExtended ? "Logs" : "" }}
         </RouterLink>
-        <RouterLink to="/faq" class="nav-item">
+        <!-- <RouterLink to="/faq" class="nav-item">
           <img :src="faqIcon"/>
           {{ sidebarStore.isExtended ? "FAQ" : "" }}
         </RouterLink>
         <RouterLink to="/appmanager" class="nav-item">
           <img :src="appManagerIcon"/>
           {{ sidebarStore.isExtended ? "App Manager" : "" }}
-        </RouterLink>
+        </RouterLink> -->
         <RouterLink to="/sunshineconfig" class="nav-item">
           <img :src="sunshineIcon"/>
           {{ sidebarStore.isExtended ? "Sunshine" : "" }}
         </RouterLink>
-        <RouterLink to="/settings" class="nav-item">
+        <!-- <RouterLink to="/settings" class="nav-item">
           <img :src="settingsIcon"/>
           {{ sidebarStore.isExtended ? "Settings" : "" }}
-        </RouterLink>
+        </RouterLink> -->
       </div>
     </div>
   </div>
@@ -69,9 +69,8 @@ const sidebarStore = useSidebarStore();
   width: 85px;
   height: 100vh;
   background-color: var(--color-blue);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px); /* For Safari compatibility */
   transition: width 0.2s;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
 }
 .sidebar.extended {
   width: 300px;
