@@ -1,3 +1,5 @@
+// Handles the extension state of the sidebar
+
 import { defineStore } from "pinia";
 
 export const useSidebarStore = defineStore("sidebar", {

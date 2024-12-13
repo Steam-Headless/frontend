@@ -18,7 +18,7 @@ export default {
 </script>
 
 <template>
-    <div>
+    <div class="iframe-container">
         <iframe
         v-if="iframeSrc"
         :src="iframeSrc"
@@ -27,9 +27,9 @@ export default {
 </template>
   
 <style scoped>
-  div {
+  .iframe-container {
     width: 100%;
-    height: 100%;
+    height: calc(100vh - 4px); /* 100vh causes scrollbar to appear */
   }
   iframe {
     height: 100%;
