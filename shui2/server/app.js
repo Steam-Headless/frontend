@@ -7,6 +7,12 @@ const https = require('https');
 const projectRoot = path.resolve(__dirname, '../../');
 const logsDir = '/home/default/.cache/log';
 
+// Load environment-configurable ports
+const WEB_PORT = process.env.WEB_PORT || 3001;
+const VNC_PORT = process.env.VNC_PORT || 32036;
+const SUNSHINE_PORT = process.env.SUNSHINE_PORT || 47990;
+const SUNSHINE_PROXY_PORT = process.env.SUNSHINE_PROXY_PORT || 3002;
+
 // class Game {
 //     constructor(name, isAdded) {
 
@@ -26,7 +32,7 @@ class LogFile {
 
 const readConfig = () => {
     return {
-        sunshineProxyPort: 3002,
+        sunshineProxyPort: Number(SUNSHINE_PROXY_PORT),
     };
 };
 
@@ -116,12 +122,11 @@ app.use('/web', express.static(path.join(projectRoot, 'web')));
 app.use('/noVNC', express.static(path.join(projectRoot, 'noVNC')));
 
 // Proxy websockify
-// TODO: Read VNC_PORT from env
 // TODO: Remove websockify references. We will need to update noVNC I think
 app.use(
     '/websockify',
     createProxyMiddleware({
-        target: 'http://localhost:32036',
+        target: `http://localhost:${VNC_PORT}`,
         ws: true,
         changeOrigin: true,
         pathRewrite: {
@@ -138,9 +143,8 @@ app.use((req, res) => {
     res.sendFile(path.join(projectRoot, 'shui2/shui-vue/dist/index.html'));
 });
 
-const appPort = 3001;
-app.listen(appPort, () => {
-    console.log(`VNC Proxy on port ${appPort}`);
+app.listen(WEB_PORT, () => {
+    console.log(`Running SHUI server on port ${WEB_PORT}`);
 });
 
 //  ____                  _     _              ____
@@ -158,7 +162,7 @@ sunshineProxy.use(basicAuth);
 sunshineProxy.use(
     '/',
     createProxyMiddleware({
-        target: 'https://localhost:47990',
+        target: `https://localhost:${SUNSHINE_PORT}`,
         ws: true,
         changeOrigin: true,
         secure: false,
@@ -172,7 +176,6 @@ sunshineProxy.use(
     })
 );
 
-const sunshineProxyPort = 3002;
-sunshineProxy.listen(sunshineProxyPort, () => {
-    console.log(`Sunshine web proxy on port ${sunshineProxyPort}`);
+sunshineProxy.listen(SUNSHINE_PROXY_PORT, () => {
+    console.log(`Sunshine web proxy on port ${SUNSHINE_PROXY_PORT}`);
 });
