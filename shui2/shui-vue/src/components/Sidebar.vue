@@ -4,11 +4,11 @@ import {RouterLink} from 'vue-router';
 import Drawer from 'primevue/drawer';
 
 import homeIcon from '@/assets/icons/home.svg';
-import connectIcon from '@/assets/icons/connect.svg';
+import vncIcon from '@/assets/icons/vnc.svg';
 import logsIcon from '@/assets/icons/logs.svg';
 import sunshineIcon from '@/assets/icons/logo-sunshine.svg';
 
-const visible = ref(false);
+const visible = ref(true);
 
 function show() {
   visible.value = true;
@@ -51,24 +51,24 @@ function hide() {
         <RouterLink to="/">
           <img src="@/assets/steam-headless-logo.png" style="height: 44px;"/>
         </RouterLink>
-        <h1 class="title">Steam Headless</h1>
+        <h1>Steam Headless</h1>
       </div>
 
       <div class="sidebar-drawer-items">
         <RouterLink to="/" class="sidebar-drawer-nav-item">
-          <img :src="homeIcon"/>
+          <img :src="homeIcon" class="sidebar-drawer-nav-item-icon"/>
           Home
         </RouterLink>
         <RouterLink to="/vnc" class="sidebar-drawer-nav-item">
-          <img :src="connectIcon"/>
+          <img :src="vncIcon" class="sidebar-drawer-nav-item-icon"/>
           Connect
         </RouterLink>
         <RouterLink to="/logs" class="sidebar-drawer-nav-item">
-          <img :src="logsIcon"/>
+          <img :src="logsIcon" class="sidebar-drawer-nav-item-icon"/>
           Logs
         </RouterLink>
         <RouterLink to="/sunshineconfig" class="sidebar-drawer-nav-item">
-          <img :src="sunshineIcon"/>
+          <img :src="sunshineIcon" class="sidebar-drawer-nav-item-icon"/>
           Sunshine
         </RouterLink>
         <!-- add/remove links as needed -->
@@ -116,6 +116,7 @@ function hide() {
 
 .sidebar-drawer-title-content h1 {
   font-size: 1.5rem;
+  font-weight: 500;
   color: var(--color-off-white);
 }
 
@@ -136,9 +137,15 @@ function hide() {
   color: var(--color-off-white);
   text-decoration: none;
   transition: background 0.1s;
+  font-size: 1.5rem;
+  font-weight: 500;
 }
 
 .sidebar-drawer-nav-item:hover {
   background-color: var(--color-nav-active);
+}
+
+.sidebar-drawer-nav-item-icon {
+  height: 2rem;
 }
 </style>
