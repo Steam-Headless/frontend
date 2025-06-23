@@ -229,7 +229,7 @@ html {
   justify-content: flex-end;
   width: 100vw;
 
-  background-color: #272D37;
+  background-color: #102A43;
 
   border-bottom: 1px solid black;
 
@@ -421,7 +421,7 @@ html {
 
 #noVNC_modifiers {
   position: relative;
-  background-color: #272D37;
+  background-color: #102A43;
   width: fit-content;
   border: none;
   padding: 10px;
