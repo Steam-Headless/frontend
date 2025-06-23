@@ -25,6 +25,9 @@ export default defineConfig({
             '/api': {
                 target: backendUrl,
             },
+            '/sunshine': {
+                target: backendUrl,
+            },
             '/web': {
                 target: backendUrl,
             },
