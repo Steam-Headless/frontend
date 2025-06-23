@@ -11,12 +11,8 @@ export default {
     try {
       // Fetch config
       const config = await configService.serverConfig();
-      // Get the current hostname from the browser
-      const hostname = window.location.hostname;
-      const protocol = window.location.protocol;
-      console.log(config.sunshineProxyPort)
       // Construct the new URL with the hostname and config-provided port
-      this.iframeSrc = `${protocol}//${hostname}:${config.sunshineProxyPort}`;
+      this.iframeSrc = `/sunshine/`;
       console.log(this.iframeSrc)
     } catch (error) {
       console.error("Failed to load config:", error);

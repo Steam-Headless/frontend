@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { createProxyMiddleware } = require('http-proxy-middleware');
+const {createProxyMiddleware} = require('http-proxy-middleware');
 const express = require('express');
 const https = require('https');
 
@@ -126,9 +126,28 @@ const wsProxy = createProxyMiddleware({
     target: `http://localhost:${VNC_PORT}`,
     ws: true,
     changeOrigin: true,
-    pathRewrite: { '^/websockify': '' },
+    pathRewrite: {'^/websockify': ''},
 });
 app.use('/websockify', wsProxy);
+
+// Proxy sunshine
+app.use(
+    '/sunshine/',
+    createProxyMiddleware({
+        target: `https://localhost:${SUNSHINE_PORT}`,
+        changeOrigin: true,
+        secure: false, // Accept self-signed certs
+
+        onProxyReq: (proxyReq, req, res) => {
+            // Add or modify headers if needed
+            proxyReq.setHeader('Host', req.headers.host);
+        },
+
+        onError(err, req, res) {
+            res.status(502).send('Sunshine proxy error: ' + err.message)
+        },
+    })
+);
 
 // These routes below need to be the last routes in the list
 // Serve static files from the Vue 3 compiled `dist` directory
@@ -147,37 +166,4 @@ shuiServer.on('upgrade', (req, socket, head) => {
     if (req.url.startsWith('/websockify')) {
         wsProxy.upgrade(req, socket, head);
     }
-});
-
-//  ____                  _     _              ____
-// / ___| _   _ _ __  ___| |__ (_)_ __   ___  |  _ \ _ __ _____  ___   _
-// \___ \| | | | '_ \/ __| '_ \| | '_ \ / _ \ | |_) | '__/ _ \ \/ / | | |
-//  ___) | |_| | | | \__ \ | | | | | | |  __/ |  __/| | | (_) >  <| |_| |
-// |____/ \__,_|_| |_|___/_| |_|_|_| |_|\___| |_|   |_|  \___/_/\_\\__, |
-//                                                                 |___/
-//
-
-// Create an app for the Sunshine proxy
-const sunshineProxy = express();
-sunshineProxy.use(basicAuth);
-
-sunshineProxy.use(
-    '/',
-    createProxyMiddleware({
-        target: `https://localhost:${SUNSHINE_PORT}`,
-        ws: true,
-        changeOrigin: true,
-        secure: false,
-        agent: new https.Agent({ rejectUnauthorized: false }),
-        onProxyReq: (proxyReq, req) => {
-            // Pass the Authorization header from the original request
-            if (req.headers.authorization) {
-                proxyReq.setHeader('Authorization', req.headers.authorization);
-            }
-        },
-    })
-);
-
-sunshineProxy.listen(SUNSHINE_PROXY_PORT, () => {
-    console.log(`Sunshine web proxy on port ${SUNSHINE_PROXY_PORT}`);
 });
