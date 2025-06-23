@@ -19,6 +19,6 @@ if [ ! -d ./venv ]; then
 fi
 
 # Stop current frontend
-supervisorctl stop frontend
+sudo supervisorctl stop frontend
 # Start new one
 exec ./utils/run.sh # --web-port 3000
