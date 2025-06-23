@@ -231,8 +231,6 @@ html {
 
   background-color: #102A43;
 
-  border-bottom: 1px solid black;
-
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none; /* Disable iOS image long-press popup */
