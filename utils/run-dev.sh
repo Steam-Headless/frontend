@@ -18,5 +18,7 @@ if [ ! -d ./venv ]; then
     python3 -m pip install -r ./requirements.txt
 fi
 
-# Run a dev instance on a different port to the one already running in the SH container
-exec ./utils/run.sh --web-port 3000
+# Stop current frontend
+supervisorctl stop frontend
+# Start new one
+exec ./utils/run.sh # --web-port 3000

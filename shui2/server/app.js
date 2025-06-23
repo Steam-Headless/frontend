@@ -122,18 +122,13 @@ app.use('/web', express.static(path.join(projectRoot, 'web')));
 app.use('/noVNC', express.static(path.join(projectRoot, 'noVNC')));
 
 // Proxy websockify
-// TODO: Remove websockify references. We will need to update noVNC I think
-app.use(
-    '/websockify',
-    createProxyMiddleware({
-        target: `http://localhost:${VNC_PORT}`,
-        ws: true,
-        changeOrigin: true,
-        pathRewrite: {
-            '^/websockify': '',
-        },
-    })
-);
+const wsProxy = createProxyMiddleware({
+    target: `http://localhost:${VNC_PORT}`,
+    ws: true,
+    changeOrigin: true,
+    pathRewrite: { '^/websockify': '' },
+});
+app.use('/websockify', wsProxy);
 
 // These routes below need to be the last routes in the list
 // Serve static files from the Vue 3 compiled `dist` directory
@@ -143,8 +138,15 @@ app.use((req, res) => {
     res.sendFile(path.join(projectRoot, 'shui2/shui-vue/dist/index.html'));
 });
 
-app.listen(WEB_PORT, () => {
+const shuiServer = app.listen(WEB_PORT, () => {
     console.log(`Running SHUI server on port ${WEB_PORT}`);
+});
+
+// Properly handle WebSocket upgrades for websockify
+shuiServer.on('upgrade', (req, socket, head) => {
+    if (req.url.startsWith('/websockify')) {
+        wsProxy.upgrade(req, socket, head);
+    }
 });
 
 //  ____                  _     _              ____
