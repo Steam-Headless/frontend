@@ -320,10 +320,9 @@ html {
 
   padding: 15px;
 
-  background: #fff;
+  background: #102A43;
   border-radius: 10px;
-  color: #000;
-  border: 2px solid #E0E0E0;
+  color: #fff;
   box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.5);
 }
 .noVNC_panel.noVNC_open {
