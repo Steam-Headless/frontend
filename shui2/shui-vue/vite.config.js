@@ -15,16 +15,16 @@ export default defineConfig({
     host: '0.0.0.0',
     proxy: {
       '/api': {
-          target: 'http://localhost:3001',
+          target: 'http://localhost:8083',
       },
       '/web': {
-          target: 'http://localhost:3001',
+          target: 'http://localhost:8083',
       },
       '/noVNC': {
-          target: 'http://localhost:3001',
+          target: 'http://localhost:8083',
       },
       '/websockify': {
-          target: 'ws://localhost:3001',
+          target: 'ws://localhost:8083',
           ws: true,
       }
     },
