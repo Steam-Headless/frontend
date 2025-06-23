@@ -8,7 +8,7 @@ export default {
   async mounted() {
     try {
       // Ref for args: https://github.com/novnc/noVNC/blob/master/docs/EMBEDDING.md
-      this.iframeSrc = `/web/index.html?autoconnect=true&resize=scale`;
+      this.iframeSrc = `/web/index.html?autoconnect=false&resize=scale`;
     } catch (error) {
       console.error("Failed to load config:", error);
     }
