@@ -1,125 +1,153 @@
 <script setup>
+import {ref} from 'vue';
+import {RouterLink} from 'vue-router';
+import Drawer from 'primevue/drawer';
+
 import homeIcon from '@/assets/icons/home.svg';
 import connectIcon from '@/assets/icons/connect.svg';
 import logsIcon from '@/assets/icons/logs.svg';
-import faqIcon from '@/assets/icons/faq.svg';
-import settingsIcon from '@/assets/icons/settings.svg';
-import appManagerIcon from '@/assets/icons/app-manager.svg';
 import sunshineIcon from '@/assets/icons/logo-sunshine.svg';
-import { useSidebarStore } from "@/stores/sidebar";
 
-const sidebarStore = useSidebarStore();
+const visible = ref(false);
+
+function show() {
+  visible.value = true;
+}
+
+function hide() {
+  visible.value = false;
+}
 </script>
 
 <template>
-  <div class="sidebar"
-    @mouseover="sidebarStore.extendSidebar"
-    @mouseleave="sidebarStore.collapseSidebar"
-    :class="['sidebar', { extended: sidebarStore.isExtended }]"
+  <!-- always-visible 85px strip -->
+  <div
+      class="mini-trigger flex flex-column align-items-center"
+      @mouseover="show"
   >
-    <div class="sidebar-content">
-      <div class="title-content"
-      :class="['title-content', { extended: sidebarStore.isExtended }]">
-        <RouterLink to="/">
-          <img src="@/assets/steam-headless-logo.png" id="logo" />
-        </RouterLink>
-        <RouterLink to="/" style="text-decoration: none">
-          <h1 class="title">{{ sidebarStore.isExtended ? "Steam Headless" : "" }}</h1>
-        </RouterLink>
-      </div>
-      <div class="sidebar-items">
-        <RouterLink to="/" class="nav-item">
-          <img :src="homeIcon"/>
-          {{ sidebarStore.isExtended ? "Home" : "" }}
-        </RouterLink>
-        <RouterLink to="/vnc" class="nav-item">
-          <img :src="connectIcon"/>
-          {{ sidebarStore.isExtended ? "Connect" : "" }}
-        </RouterLink>
-        <RouterLink to="/logs" class="nav-item">
-          <img :src="logsIcon"/>
-          {{ sidebarStore.isExtended ? "Logs" : "" }}
-        </RouterLink>
-        <!-- <RouterLink to="/faq" class="nav-item">
-          <img :src="faqIcon"/>
-          {{ sidebarStore.isExtended ? "FAQ" : "" }}
-        </RouterLink>
-        <RouterLink to="/appmanager" class="nav-item">
-          <img :src="appManagerIcon"/>
-          {{ sidebarStore.isExtended ? "App Manager" : "" }}
-        </RouterLink> -->
-        <RouterLink to="/sunshineconfig" class="nav-item">
-          <img :src="sunshineIcon"/>
-          {{ sidebarStore.isExtended ? "Sunshine" : "" }}
-        </RouterLink>
-        <!-- <RouterLink to="/settings" class="nav-item">
-          <img :src="settingsIcon"/>
-          {{ sidebarStore.isExtended ? "Settings" : "" }}
-        </RouterLink> -->
-      </div>
+    <!-- top-aligned logo -->
+    <img src="@/assets/steam-headless-logo.png" id="logo"/>
+
+    <!-- this grows to fill the rest of the 100vh and centers its child -->
+    <div class="flex-grow-1 flex align-items-center justify-content-center">
+      <i class="pi pi-angle-double-right open-icon"></i>
     </div>
   </div>
+
+  <!-- overlay drawer -->
+  <Drawer
+      v-model:visible="visible"
+      position="left"
+      :modal="false"
+      :dismissable="false"
+      :showCloseIcon="false"
+      @hide="hide"
+      baseZIndex="1000"
+      class="sidebar-drawer"
+  >
+    <div class="sidebar-drawer-content" @mouseleave="hide">
+      <div class="sidebar-drawer-title-content">
+        <RouterLink to="/">
+          <img src="@/assets/steam-headless-logo.png" id="logo"/>
+        </RouterLink>
+        <h1 class="title">Steam Headless</h1>
+      </div>
+
+      <div class="sidebar-drawer-items">
+        <RouterLink to="/" class="sidebar-drawer-nav-item">
+          <img :src="homeIcon"/>
+          Home
+        </RouterLink>
+        <RouterLink to="/vnc" class="sidebar-drawer-nav-item">
+          <img :src="connectIcon"/>
+          Connect
+        </RouterLink>
+        <RouterLink to="/logs" class="sidebar-drawer-nav-item">
+          <img :src="logsIcon"/>
+          Logs
+        </RouterLink>
+        <RouterLink to="/sunshineconfig" class="sidebar-drawer-nav-item">
+          <img :src="sunshineIcon"/>
+          Sunshine
+        </RouterLink>
+        <!-- add/remove links as needed -->
+      </div>
+    </div>
+  </Drawer>
 </template>
 
-<style scoped>
-.sidebar {
+<style>
+/* Mini mouseover strip */
+.mini-trigger {
   position: fixed;
   top: 0;
   left: 0;
   width: 85px;
   height: 100vh;
   background-color: var(--color-blue);
-  transition: width 0.2s;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
-}
-.sidebar.extended {
-  width: 300px;
-}
 
-.title-content {
   display: flex;
-  align-items: center;
-  padding: 10px 20px;
-  /* border-bottom: 1px solid var(--color-black); */
-}
-.title-content.extended {
-  gap: 10px;
-}
+  /* push items to top */
+  align-items: flex-start;
+  /* keep them centered horizontally */
+  justify-content: center;
 
-.title {
-  font-size: 26px;
-  color: var(--color-off-white);
-  white-space: nowrap;
+  /* optional spacing from the very top edge */
+  padding-top: 1rem;
+
+  z-index: 999;
 }
 
 #logo {
   height: 44px;
 }
 
-.sidebar-items {
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
+/* Sidebar Drawer */
+.sidebar-drawer {
+  background-color: var(--color-blue) !important;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
-.nav-item {
+/* Sidebar Drawer Content */
+.sidebar-drawer-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.sidebar-drawer-title-content {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px;
-  margin: 5px 20px;
-  border-radius: 10px;
-  color: var(--color-off-white);
-  text-decoration: none;
-  transition: ease-in-out 0.1s;
-  white-space: nowrap;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.nav-item:hover {
-  background-color: var(--color-nav-active);
+.sidebar-drawer-title-content h1 {
+  font-size: 1.5rem;
+  color: var(--color-off-white);
 }
-.nav-item.is-active {
+
+.sidebar-drawer-items {
+  flex: 1;
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-drawer-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin: 0.25rem 0;
+  border-radius: 0.5rem;
+  color: var(--color-off-white);
+  text-decoration: none;
+  transition: background 0.1s;
+}
+
+.sidebar-drawer-nav-item:hover {
   background-color: var(--color-nav-active);
 }
 </style>

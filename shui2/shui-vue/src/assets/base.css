@@ -1,3 +1,7 @@
+
+@import 'primeicons/primeicons.css';
+@import 'primeflex/primeflex.css';
+
 :root {
   /* base colours */
   --color-blue: #102A43;
