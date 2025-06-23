@@ -26,7 +26,8 @@ function hide() {
       @mouseover="show"
   >
     <!-- top-aligned logo -->
-    <img src="@/assets/steam-headless-logo.png" id="logo"/>
+    <img src="@/assets/steam-headless-logo.png"
+         style="height: 44px;"/>
 
     <!-- this grows to fill the rest of the 100vh and centers its child -->
     <div class="flex-grow-1 flex align-items-center justify-content-center">
@@ -48,7 +49,7 @@ function hide() {
     <div class="sidebar-drawer-content" @mouseleave="hide">
       <div class="sidebar-drawer-title-content">
         <RouterLink to="/">
-          <img src="@/assets/steam-headless-logo.png" id="logo"/>
+          <img src="@/assets/steam-headless-logo.png" style="height: 44px;"/>
         </RouterLink>
         <h1 class="title">Steam Headless</h1>
       </div>
@@ -85,21 +86,11 @@ function hide() {
   width: 85px;
   height: 100vh;
   background-color: var(--color-blue);
-
   display: flex;
-  /* push items to top */
   align-items: flex-start;
-  /* keep them centered horizontally */
   justify-content: center;
-
-  /* optional spacing from the very top edge */
-  padding-top: 1rem;
-
+  padding-top: 11px;
   z-index: 999;
-}
-
-#logo {
-  height: 44px;
 }
 
 /* Sidebar Drawer */
