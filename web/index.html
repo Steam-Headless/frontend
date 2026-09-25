@@ -34,6 +34,119 @@
 
     <script type="module" crossorigin="anonymous" src="../noVNC/app/error-handler.js"></script>
     <script type="module" crossorigin="anonymous" src="./app/ui.js"></script>
+
+    <style>
+        .steam-headless-v2-banner {
+            box-sizing: border-box;
+
+            display: flex;
+            align-items: center;
+            gap: 18px;
+
+            width: min(720px, calc(100vw - 40px));
+            margin: 28px auto 32px;
+            padding: 22px 26px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(30, 110, 190, 0.32),
+                    rgba(10, 35, 65, 0.95)
+                );
+
+            border: 2px solid rgba(102, 192, 244, 0.75);
+            border-radius: 12px;
+
+            color: #fff;
+            text-decoration: none;
+            text-align: left;
+
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.35),
+                0 0 24px rgba(102, 192, 244, 0.12);
+
+            transition:
+                transform 0.15s ease,
+                border-color 0.15s ease,
+                box-shadow 0.15s ease;
+        }
+
+        .steam-headless-v2-banner:hover {
+            transform: translateY(-2px);
+            border-color: #66c0f4;
+
+            box-shadow:
+                0 14px 36px rgba(0, 0, 0, 0.45),
+                0 0 30px rgba(102, 192, 244, 0.22);
+        }
+
+        .steam-headless-v2-badge {
+            flex: 0 0 auto;
+
+            padding: 7px 10px;
+
+            background: #66c0f4;
+            border-radius: 6px;
+
+            color: #07111d;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+        }
+
+        .steam-headless-v2-content {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            gap: 5px;
+
+            min-width: 0;
+        }
+
+        .steam-headless-v2-content strong {
+            font-size: 26px;
+            line-height: 1.15;
+        }
+
+        .steam-headless-v2-content > span {
+            color: rgba(255, 255, 255, 0.78);
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        .steam-headless-v2-action {
+            flex: 0 0 auto;
+
+            padding: 12px 16px;
+
+            background: rgba(102, 192, 244, 0.15);
+            border: 1px solid rgba(102, 192, 244, 0.45);
+            border-radius: 7px;
+
+            color: #66c0f4;
+            font-size: 16px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 650px) {
+            .steam-headless-v2-banner {
+                align-items: flex-start;
+                flex-wrap: wrap;
+                gap: 12px;
+                padding: 18px;
+            }
+
+            .steam-headless-v2-content strong {
+                font-size: 22px;
+            }
+
+            .steam-headless-v2-action {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -258,6 +371,28 @@
     <!-- Connect button -->
     <div class="noVNC_center">
         <div id="noVNC_connect_dlg">
+
+            <!-- START Upgrade to v2 banner -->
+            <a
+                href="https://steamheadless.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="steam-headless-v2-banner"
+            >
+                <span class="steam-headless-v2-badge">NEW</span>
+
+                <span class="steam-headless-v2-content">
+                    <strong>Steam Headless 2 is here!</strong>
+                    <span>
+                        Upgrade your template and container to the latest version.
+                    </span>
+                </span>
+
+                <span class="steam-headless-v2-action">
+                    Click here to learn more...
+                </span>
+            </a>
+            <!-- END Upgrade to v2 banner -->
 
             <h1 class="noVNC_logo" translate="no">
                 <img src="./images/icons/novnc-ios-120.png" alt="Steam" class="noVNC_logo_image">
